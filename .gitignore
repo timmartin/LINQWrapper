@@ -1,0 +1,10 @@
+# Ignore all bin and obj directories
+**/bin/**/*
+**/obj/**/*
+
+# Ignore all User Option files
+*.suo
+
+# Ignore all .bak files (produced by UltraEdit)
+**/*.bak
+*.bak
