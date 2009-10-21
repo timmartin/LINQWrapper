@@ -47,10 +47,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConstraintExpressionTests.cs" />
+    <Compile Include="LINQExpressionTests.cs" />
     <Compile Include="MySQLBuilderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\IQToolkit\IQToolkit.csproj">
+      <Project>{1638DD2F-EC48-44E8-869B-26012929B94D}</Project>
+      <Name>IQToolkit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LINQWrapper\LINQWrapper.csproj">
       <Project>{CD92A302-B599-42C1-B3BE-84571C278861}</Project>
       <Name>LINQWrapper</Name>

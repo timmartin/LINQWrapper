@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions\IncompleteQueryException.cs" />
+    <Compile Include="LazyDBQueryProvider.cs" />
     <Compile Include="MySQLBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SortDirection.cs" />
@@ -53,6 +54,12 @@
     <Compile Include="SQLExpressions\AtomicConstraint.cs" />
     <Compile Include="SQLExpressions\BooleanCombinationConstraint.cs" />
     <Compile Include="SQLExpressions\Constraint.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IQToolkit\IQToolkit.csproj">
+      <Project>{1638DD2F-EC48-44E8-869B-26012929B94D}</Project>
+      <Name>IQToolkit</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
