@@ -27,6 +27,10 @@ namespace LINQWrapper
             {
                 throw new IncompleteQueryException();
             }
+
+            BuildSelectClause(builder);
+
+            builder.Append(";");
         }
 
         public void AddSelectClause(string selectClause)
@@ -45,6 +49,28 @@ namespace LINQWrapper
                 && (combine != ExpressionType.Or))
             {
                 throw new ArgumentOutOfRangeException("Combine operator must be AND or OR");
+            }
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private void BuildSelectClause(StringBuilder builder)
+        {
+            builder.Append("SELECT ");
+
+            bool first = true;
+
+            foreach (string expression in selectExpressions)
+            {
+                if (!first)
+                {
+                    builder.Append(", ");
+                }
+
+                builder.Append(expression);
+                first = false;
             }
         }
 

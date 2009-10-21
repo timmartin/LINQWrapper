@@ -15,7 +15,7 @@ namespace LINQWrapper.Tests
         [Test]
         public void BuildExpression_EmptyExpression()
         {
-            MySQLBuilder builder = new MySQLBuilder(); ;
+            MySQLBuilder builder = new MySQLBuilder();
             StringBuilder sBuilder = new StringBuilder();
 
             Assert.Throws(typeof(IncompleteQueryException), () => builder.BuildExpression(sBuilder));
@@ -24,7 +24,13 @@ namespace LINQWrapper.Tests
         [Test]
         public void BuildExpression_TrivialSelect()
         {
+            MySQLBuilder builder = new MySQLBuilder();
+            builder.AddSelectClause("1");
 
+            StringBuilder sBuilder = new StringBuilder();
+            builder.BuildExpression(sBuilder);
+
+            Assert.AreEqual("SELECT 1;", sBuilder.ToString());
         }
     }
 }
