@@ -97,5 +97,24 @@ namespace LINQWrapper.Tests
 
             Assert.AreEqual("SELECT id FROM employees LIMIT 100, 10;", stringBuilder.ToString());
         }
+
+        /// <summary>
+        /// Build an SQL statement with an ORDER BY clause
+        /// </summary>
+        [Test]
+        public void BuildExpression_OrderBy()
+        {
+            MySQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id");
+            sqlBuilder.AddFromClause("employees");
+            sqlBuilder.AddOrderByClause("name", SortDirection.Descending);
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT id FROM employees ORDER BY name DESC;", stringBuilder.ToString());
+        }
     }
 }

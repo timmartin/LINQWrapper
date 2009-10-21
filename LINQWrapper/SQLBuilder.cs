@@ -42,6 +42,14 @@ namespace LINQWrapper
         void AddWhereClause(string whereClause, ExpressionType combine);
 
         /// <summary>
+        /// Add an order by clause to the statement (combines with previous order by commands, 
+        /// orderings will be applied in the order they are received)
+        /// </summary>
+        /// <param name="orderBy"></param>
+        /// <param name="direction"></param>
+        void AddOrderByClause(string orderBy, SortDirection direction);
+
+        /// <summary>
         /// Set the number of results to skip over in the ordered result set
         /// </summary>
         /// <param name="numResults"></param>

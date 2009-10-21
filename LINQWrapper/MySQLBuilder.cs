@@ -18,6 +18,7 @@ namespace LINQWrapper
         {
             selectExpressions = new List<string>();
             fromExpressions = new List<string>();
+            orderExpressions = new List<OrderExpression>();
         }
 
         #region SQLBuilder Members
@@ -39,6 +40,8 @@ namespace LINQWrapper
 
                 whereConstraint.BuildExpression(builder);
             }
+
+            BuildOrderByClause(builder);
 
             BuildLimitClause(builder);
 
@@ -76,6 +79,11 @@ namespace LINQWrapper
             {
                 whereConstraint = whereConstraint.CombineConstraint(new AtomicConstraint(whereClause), combine);
             }
+        }
+
+        public void AddOrderByClause(string orderBy, SortDirection direction)
+        {
+            orderExpressions.Add(new OrderExpression() { Expression = orderBy, Direction = direction });
         }
 
         public void SkipResults(int numResults)
@@ -131,6 +139,33 @@ namespace LINQWrapper
             }
         }
 
+        private void BuildOrderByClause(StringBuilder builder)
+        {
+            if (orderExpressions.Count > 0)
+            {
+                builder.Append(" ORDER BY ");
+
+                bool first = true;
+
+                foreach (OrderExpression expression in orderExpressions)
+                {
+                    if (!first)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append(expression.Expression);
+
+                    if (expression.Direction == SortDirection.Descending)
+                    {
+                        builder.Append(" DESC");
+                    }
+
+                    first = false;
+                }
+            }
+        }
+
         private void BuildLimitClause(StringBuilder builder)
         {
             if (skipResults.HasValue && takeResults.HasValue)
@@ -150,11 +185,18 @@ namespace LINQWrapper
 
         #region Private data members
 
-        List<string> selectExpressions;
-        List<string> fromExpressions;
-        Constraint whereConstraint;
-        Nullable<int> skipResults;
-        Nullable<int> takeResults;
+        private struct OrderExpression
+        {
+            public string Expression;
+            public SortDirection Direction;
+        }
+
+        private List<string> selectExpressions;
+        private List<string> fromExpressions;
+        private Constraint whereConstraint;
+        private List<OrderExpression> orderExpressions;
+        private Nullable<int> skipResults;
+        private Nullable<int> takeResults;
 
         #endregion
     }
