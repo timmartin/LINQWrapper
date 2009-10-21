@@ -77,5 +77,25 @@ namespace LINQWrapper.Tests
 
             Assert.AreEqual("SELECT name FROM employees WHERE  id=42 ;", stringBuilder.ToString());
         }
+
+        /// <summary>
+        /// Build an SQL expression with a limit on the number of results to return
+        /// </summary>
+        [Test]
+        public void BuildExpression_Limit()
+        {
+            MySQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id");
+            sqlBuilder.AddFromClause("employees");
+            sqlBuilder.SkipResults(100);
+            sqlBuilder.TakeResults(10);
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT id FROM employees LIMIT 100, 10;", stringBuilder.ToString());
+        }
     }
 }

@@ -40,5 +40,17 @@ namespace LINQWrapper
         /// <param name="combine">Boolean operator by which to combine the clause with any
         /// existing WHERE clause. This must be either ExpressionType.And or ExpressionType.Or</param>
         void AddWhereClause(string whereClause, ExpressionType combine);
+
+        /// <summary>
+        /// Set the number of results to skip over in the ordered result set
+        /// </summary>
+        /// <param name="numResults"></param>
+        void SkipResults(int numResults);
+
+        /// <summary>
+        /// Set the number of results to return
+        /// </summary>
+        /// <param name="numResults"></param>
+        void TakeResults(int numResults);
     }
 }

@@ -40,6 +40,8 @@ namespace LINQWrapper
                 whereConstraint.BuildExpression(builder);
             }
 
+            BuildLimitClause(builder);
+
             builder.Append(";");
         }
 
@@ -74,6 +76,16 @@ namespace LINQWrapper
             {
                 whereConstraint = whereConstraint.CombineConstraint(new AtomicConstraint(whereClause), combine);
             }
+        }
+
+        public void SkipResults(int numResults)
+        {
+            skipResults = numResults;
+        }
+
+        public void TakeResults(int numResults)
+        {
+            takeResults = numResults;
         }
 
         #endregion
@@ -119,6 +131,21 @@ namespace LINQWrapper
             }
         }
 
+        private void BuildLimitClause(StringBuilder builder)
+        {
+            if (skipResults.HasValue && takeResults.HasValue)
+            {
+                builder.AppendFormat(" LIMIT {0}, {1}", skipResults.Value, takeResults.Value);
+            }
+            else if (takeResults.HasValue)
+            {
+                builder.AppendFormat(" LIMIT {0}", takeResults.HasValue);
+            }
+            
+            // TODO: The remaining case can't actually be implemented in MySQL. We can fudge it by setting
+            // a skip value and a very large take value, but perhaps we should log a warning?
+        }
+
         #endregion
 
         #region Private data members
@@ -126,6 +153,8 @@ namespace LINQWrapper
         List<string> selectExpressions;
         List<string> fromExpressions;
         Constraint whereConstraint;
+        Nullable<int> skipResults;
+        Nullable<int> takeResults;
 
         #endregion
     }
