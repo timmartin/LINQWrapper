@@ -27,6 +27,16 @@ namespace LINQWrapper.SQLExpressions
             builder.Append(" ");
         }
 
+        public Constraint CombineConstraint(Constraint other, System.Linq.Expressions.ExpressionType op)
+        {
+            BooleanCombinationConstraint combinedConstraint = new BooleanCombinationConstraint(op);
+
+            combinedConstraint.AddConstraint(this);
+            combinedConstraint.AddConstraint(other);
+
+            return combinedConstraint;
+        }
+
         #endregion
 
         #region Private data members

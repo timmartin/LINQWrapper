@@ -80,6 +80,27 @@ namespace LINQWrapper.SQLExpressions
             }
         }
 
+        public Constraint CombineConstraint(Constraint other, ExpressionType op)
+        {
+            if (op == type)
+            {
+                // The operator types match, so we can create a single constraint combining all sub-constraints
+
+                BooleanCombinationConstraint newConstraint = new BooleanCombinationConstraint(type);
+                newConstraint.childConstraints = this.childConstraints;
+                newConstraint.childConstraints.Add(other);
+                return newConstraint;
+            }
+            else
+            {
+                BooleanCombinationConstraint combinedConstraint = new BooleanCombinationConstraint(type);
+
+                combinedConstraint.AddConstraint(this);
+                combinedConstraint.AddConstraint(other);
+                return combinedConstraint;
+            }
+        }
+
         #endregion
 
         #region Private data members

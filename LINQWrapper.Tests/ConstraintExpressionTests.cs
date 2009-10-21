@@ -51,5 +51,26 @@ namespace LINQWrapper.Tests
 
             Assert.AreEqual("( one=1 ) AND ( two=2 ) AND ( three=3 )", builder.ToString());
         }
+
+        /// <summary>
+        /// When we use Boolean OR to combine a constraint into an existing OR expression, we get a single
+        /// combined expression and not an additional layer of nesting
+        /// </summary>
+        [Test]
+        public void BooleanCombinationConstraint_CombineConstraints()
+        {
+            BooleanCombinationConstraint baseConstraint = new BooleanCombinationConstraint(ExpressionType.Or);
+
+            baseConstraint.AddConstraint(new AtomicConstraint("one=1"));
+            baseConstraint.AddConstraint(new AtomicConstraint("two=2"));
+
+            Constraint combinedConstraint = baseConstraint.CombineConstraint(new AtomicConstraint("three=3"), ExpressionType.Or);
+
+            StringBuilder builder = new StringBuilder();
+
+            combinedConstraint.BuildExpression(builder);
+
+            Assert.AreEqual("( one=1 ) OR ( two=2 ) OR ( three=3 )", builder.ToString());
+        }
     }
 }
