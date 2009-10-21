@@ -13,6 +13,12 @@ namespace LINQWrapper
     public interface SQLBuilder
     {
         /// <summary>
+        /// Build the current state of the SQL expression into the StringBuilder provided
+        /// </summary>
+        /// <param name="builder"></param>
+        void BuildExpression(StringBuilder builder);
+
+        /// <summary>
         /// Add a WHERE clause to the statement
         /// </summary>
         /// <param name="whereClause"></param>
