@@ -12,6 +12,9 @@ namespace LINQWrapper.Tests
     [TestFixture]
     public class MySQLBuilderTests
     {
+        /// <summary>
+        /// We have to have at least one expression in the SELECT clause, or we can't generate valid SQL
+        /// </summary>
         [Test]
         public void BuildExpression_EmptyExpression()
         {
@@ -21,6 +24,9 @@ namespace LINQWrapper.Tests
             Assert.Throws(typeof(IncompleteQueryException), () => builder.BuildExpression(sBuilder));
         }
 
+        /// <summary>
+        /// A SELECT clause with just a single constant expression is valid
+        /// </summary>
         [Test]
         public void BuildExpression_TrivialSelect()
         {
