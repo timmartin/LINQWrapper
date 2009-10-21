@@ -19,6 +19,14 @@ namespace LINQWrapper
         void BuildExpression(StringBuilder builder);
 
         /// <summary>
+        /// Add an entry to the SELECT clause, i.e. the list of expressions to be selected. It is intended
+        /// that the string to be added is a single atomic expression (no commas), though an expression 
+        /// with commas in it will probably work for the time being.
+        /// </summary>
+        /// <param name="selectClause"></param>
+        void AddSelectClause(string selectClause);
+
+        /// <summary>
         /// Add a WHERE clause to the statement
         /// </summary>
         /// <param name="whereClause"></param>

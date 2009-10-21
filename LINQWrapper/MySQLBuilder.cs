@@ -14,11 +14,24 @@ namespace LINQWrapper
     /// </summary>
     public class MySQLBuilder : SQLBuilder
     {
+        public MySQLBuilder()
+        {
+            selectExpressions = new List<string>();
+        }
+
         #region SQLBuilder Members
 
         public void BuildExpression(StringBuilder builder)
         {
-            throw new IncompleteQueryException();
+            if (selectExpressions.Count == 0)
+            {
+                throw new IncompleteQueryException();
+            }
+        }
+
+        public void AddSelectClause(string selectClause)
+        {
+            selectExpressions.Add(selectClause);
         }
 
         public void AddWhereClause(string whereClause, ExpressionType combine)
@@ -34,6 +47,12 @@ namespace LINQWrapper
                 throw new ArgumentOutOfRangeException("Combine operator must be AND or OR");
             }
         }
+
+        #endregion
+
+        #region Private data members
+
+        List<string> selectExpressions;
 
         #endregion
     }

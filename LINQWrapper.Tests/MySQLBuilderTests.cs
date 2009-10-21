@@ -20,5 +20,11 @@ namespace LINQWrapper.Tests
 
             Assert.Throws(typeof(IncompleteQueryException), () => builder.BuildExpression(sBuilder));
         }
+
+        [Test]
+        public void BuildExpression_TrivialSelect()
+        {
+
+        }
     }
 }
