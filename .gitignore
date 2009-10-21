@@ -4,6 +4,7 @@
 
 # Ignore all User Option files
 *.suo
+*.user
 
 # Ignore all .bak files (produced by UltraEdit)
 **/*.bak
