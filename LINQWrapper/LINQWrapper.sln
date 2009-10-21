@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LINQWrapper", "LINQWrapper.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LINQWrapper.Tests", "..\LINQWrapper.Tests\LINQWrapper.Tests.csproj", "{F3D41074-D398-47E1-99C8-FD81A9CB8784}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQToolkit", "..\IQToolkit\IQToolkit.csproj", "{1638DD2F-EC48-44E8-869B-26012929B94D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{F3D41074-D398-47E1-99C8-FD81A9CB8784}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3D41074-D398-47E1-99C8-FD81A9CB8784}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3D41074-D398-47E1-99C8-FD81A9CB8784}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1638DD2F-EC48-44E8-869B-26012929B94D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1638DD2F-EC48-44E8-869B-26012929B94D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1638DD2F-EC48-44E8-869B-26012929B94D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1638DD2F-EC48-44E8-869B-26012929B94D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
