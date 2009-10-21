@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LINQWrapper", "LINQWrapper.csproj", "{CD92A302-B599-42C1-B3BE-84571C278861}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LINQWrapper.Tests", "..\LINQWrapper.Tests\LINQWrapper.Tests.csproj", "{F3D41074-D398-47E1-99C8-FD81A9CB8784}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{CD92A302-B599-42C1-B3BE-84571C278861}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD92A302-B599-42C1-B3BE-84571C278861}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD92A302-B599-42C1-B3BE-84571C278861}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3D41074-D398-47E1-99C8-FD81A9CB8784}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3D41074-D398-47E1-99C8-FD81A9CB8784}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3D41074-D398-47E1-99C8-FD81A9CB8784}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3D41074-D398-47E1-99C8-FD81A9CB8784}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

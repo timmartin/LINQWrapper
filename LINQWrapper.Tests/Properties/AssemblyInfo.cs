@@ -5,17 +5,14 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LINQWrapper")]
+[assembly: AssemblyTitle("LINQWrapper.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("LINQWrapper")]
-[assembly: AssemblyCopyright("Copyright © Tim Martin 2009")]
+[assembly: AssemblyProduct("LINQWrapper.Tests")]
+[assembly: AssemblyCopyright("Copyright ©  2009")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-
-// Make our internals visible within the unit tests
-[assembly: InternalsVisibleTo("LINQWrapper.Tests")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -23,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("05219a1d-9067-4764-a408-72784e2d7066")]
+[assembly: Guid("16d5d62e-b7d1-4794-b8ba-d246c0e027ec")]
 
 // Version information for an assembly consists of the following four values:
 //
