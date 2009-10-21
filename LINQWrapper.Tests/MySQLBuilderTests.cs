@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 using NUnit.Framework;
@@ -37,6 +38,25 @@ namespace LINQWrapper.Tests
             builder.BuildExpression(sBuilder);
 
             Assert.AreEqual("SELECT 1;", sBuilder.ToString());
+        }
+
+        /// <summary>
+        /// A statement with a constant SELECT clause and constant WHERE clauses is technically valid,
+        /// although it is rather pointless in practice
+        /// </summary>
+        [Test]
+        public void BuildExpression_TrivialSelectTrivialWhere()
+        {
+            MySQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("1");
+            sqlBuilder.AddWhereClause("1 = 0", ExpressionType.Or);
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT 1 WHERE  1 = 0 ;", stringBuilder.ToString());
         }
     }
 }

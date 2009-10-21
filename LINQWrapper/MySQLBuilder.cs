@@ -30,6 +30,13 @@ namespace LINQWrapper
 
             BuildSelectClause(builder);
 
+            if (whereConstraint != null)
+            {
+                builder.Append(" WHERE ");
+
+                whereConstraint.BuildExpression(builder);
+            }
+
             builder.Append(";");
         }
 
@@ -49,6 +56,15 @@ namespace LINQWrapper
                 && (combine != ExpressionType.Or))
             {
                 throw new ArgumentOutOfRangeException("Combine operator must be AND or OR");
+            }
+
+            if (whereConstraint == null)
+            {
+                whereConstraint = new AtomicConstraint(whereClause);
+            }
+            else
+            {
+                whereConstraint = whereConstraint.CombineConstraint(new AtomicConstraint(whereClause), combine);
             }
         }
 
@@ -79,6 +95,7 @@ namespace LINQWrapper
         #region Private data members
 
         List<string> selectExpressions;
+        Constraint whereConstraint;
 
         #endregion
     }
