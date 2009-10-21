@@ -58,5 +58,24 @@ namespace LINQWrapper.Tests
 
             Assert.AreEqual("SELECT 1 WHERE  1 = 0 ;", stringBuilder.ToString());
         }
+
+        /// <summary>
+        /// Combine the SELECT, FROM and WHERE clauses
+        /// </summary>
+        [Test]
+        public void BuildExpression_SelectFromWhere()
+        {
+            MySQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("name");
+            sqlBuilder.AddFromClause("employees");
+            sqlBuilder.AddWhereClause("id=42", ExpressionType.And);
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT name FROM employees WHERE  id=42 ;", stringBuilder.ToString());
+        }
     }
 }

@@ -27,6 +27,13 @@ namespace LINQWrapper
         void AddSelectClause(string selectClause);
 
         /// <summary>
+        /// Add an expression to the FROM clause, i.e. a table to select from (sub-selects are being
+        /// ignored for the moment)
+        /// </summary>
+        /// <param name="fromClause"></param>
+        void AddFromClause(string fromClause);
+
+        /// <summary>
         /// Add a WHERE clause to the statement
         /// </summary>
         /// <param name="whereClause"></param>

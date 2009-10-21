@@ -17,6 +17,7 @@ namespace LINQWrapper
         public MySQLBuilder()
         {
             selectExpressions = new List<string>();
+            fromExpressions = new List<string>();
         }
 
         #region SQLBuilder Members
@@ -29,6 +30,8 @@ namespace LINQWrapper
             }
 
             BuildSelectClause(builder);
+
+            BuildFromClause(builder);
 
             if (whereConstraint != null)
             {
@@ -43,6 +46,11 @@ namespace LINQWrapper
         public void AddSelectClause(string selectClause)
         {
             selectExpressions.Add(selectClause);
+        }
+
+        public void AddFromClause(string fromClause)
+        {
+            fromExpressions.Add(fromClause);
         }
 
         public void AddWhereClause(string whereClause, ExpressionType combine)
@@ -90,11 +98,33 @@ namespace LINQWrapper
             }
         }
 
+        private void BuildFromClause(StringBuilder builder)
+        {
+            if (fromExpressions.Count > 0)
+            {
+                builder.Append(" FROM ");
+
+                bool first = true;
+
+                foreach (string expression in fromExpressions)
+                {
+                    if (!first)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append(expression);
+                    first = false;
+                }
+            }
+        }
+
         #endregion
 
         #region Private data members
 
         List<string> selectExpressions;
+        List<string> fromExpressions;
         Constraint whereConstraint;
 
         #endregion
