@@ -24,6 +24,11 @@ namespace LINQWrapper.SQLExpressions
             this.childConstraints = new List<Constraint>();
         }
 
+        public void AddConstraint(Constraint constraint)
+        {
+            childConstraints.Add(constraint);
+        }
+
         #region Constraint Members
 
         public void BuildExpression(StringBuilder builder)
@@ -40,6 +45,37 @@ namespace LINQWrapper.SQLExpressions
                 else if (type == ExpressionType.And)
                 {
                     builder.Append(" 1 ");
+                }
+            }
+            else
+            {
+                bool first = true;
+
+                foreach (Constraint child in childConstraints)
+                {                    
+                    if (!first)
+                    {
+                        switch (type)
+                        {
+                            case ExpressionType.And:
+                                builder.Append(" AND ");
+                                break;
+
+                            case ExpressionType.Or:
+                                builder.Append(" OR ");
+                                break;
+
+                            default:
+                                throw new Exception("Invalid boolean combination type");
+                        }
+                    }
+
+                    builder.Append("(");
+
+                    child.BuildExpression(builder);
+                    
+                    builder.Append(")");
+                    first = false;
                 }
             }
         }
