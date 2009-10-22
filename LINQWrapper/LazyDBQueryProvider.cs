@@ -37,7 +37,17 @@ namespace LINQWrapper
 
             IDataReader reader = cmd.ExecuteReader();
 
-            return new ObjectBuilder<T>(reader);
+            if (translator.Aggregate)
+            {
+                // We're going to assume this is a count query, since this is the only
+                // aggregate we support at the moment. This needs to be tidied up.
+                reader.Read();
+                return int.Parse(reader["numrows"].ToString());
+            }
+            else
+            {
+                return new ObjectBuilder<T>(reader);
+            }
         }
 
         private IDbConnection connection;

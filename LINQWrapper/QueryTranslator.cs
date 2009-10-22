@@ -15,6 +15,7 @@ namespace LINQWrapper
         internal QueryTranslator(SQLBuilder builder)
         {
             this.builder = builder;
+            this.Aggregate = false;
         }
 
         internal void Translate(Expression expression)
@@ -34,20 +35,28 @@ namespace LINQWrapper
 
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "OrderBy")
+            if (m.Method.DeclaringType == typeof(Queryable))
             {
-                this.Visit(m.Arguments[0]);
-
-                LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-
-                orderFieldName = null;
-                this.Visit(lambda.Body);
-                // Visiting the lambda body should cause us to eventually hit a member access,
-                // at which point the orderFieldName will be populated.
-
-                if (orderFieldName != null)
+                if (m.Method.Name == "OrderBy")
                 {
-                    builder.AddOrderByClause(orderFieldName, SortDirection.Ascending);
+                    this.Visit(m.Arguments[0]);
+
+                    LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+
+                    orderFieldName = null;
+                    this.Visit(lambda.Body);
+                    // Visiting the lambda body should cause us to eventually hit a member access,
+                    // at which point the orderFieldName will be populated.
+
+                    if (orderFieldName != null)
+                    {
+                        builder.AddOrderByClause(orderFieldName, SortDirection.Ascending);
+                    }
+                }
+                else if (m.Method.Name == "Count")
+                {
+                    Aggregate = true;
+                    builder.AddCountClause();
                 }
             }
 
@@ -86,6 +95,9 @@ namespace LINQWrapper
 
             throw new NotSupportedException(string.Format("The member '{0}' is not supported", m.Member.Name));
         }
+
+        public bool Aggregate
+        { get; private set; }
 
         private SQLBuilder builder;
 

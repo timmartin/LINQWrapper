@@ -136,7 +136,7 @@ namespace LINQWrapper.Tests
 
             sqlBuilder.BuildExpression(stringBuilder);
 
-            Assert.AreEqual("SELECT COUNT(*) FROM employees;", stringBuilder.ToString());
+            Assert.AreEqual("SELECT COUNT(*) AS numrows FROM employees;", stringBuilder.ToString());
         }
     }
 }

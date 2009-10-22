@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 using NMock2;
@@ -161,10 +162,48 @@ namespace LINQWrapper.Tests
         /// Check that we can apply a LINQ Count() expression and have it turned into SQL
         /// </summary>
         [Test]
-        [Ignore("Not implemented yet")]
         public void CountExpressionTest()
         {
+            Mockery mocks = new Mockery();
 
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT COUNT(*) AS numrows FROM employees WHERE  name LIKE '%smith' ;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Get["numrows"]
+                .Will(Return.Value(16));
+
+            SQLBuilder builder = new MySQLBuilder();
+
+            builder.AddSelectClause("id");
+            builder.AddSelectClause("name");
+            builder.AddFromClause("employees");
+            builder.AddWhereClause("name LIKE '%smith'", ExpressionType.And);
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder);
+            Query<Employee> myQuery = new Query<Employee>(provider);
+
+            Assert.AreEqual(16, myQuery.Count());
         }
     }
 }

@@ -112,7 +112,7 @@ namespace LINQWrapper
 
             if (countQuery)
             {
-                builder.Append("COUNT(*)");
+                builder.Append("COUNT(*) AS numrows");
             }
             else
             {
