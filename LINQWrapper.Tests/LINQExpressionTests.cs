@@ -9,6 +9,7 @@ using NUnit.Framework;
 
 using IQToolkit;
 using LINQWrapper;
+using LINQWrapper.Tests.TestTypes;
 
 namespace LINQWrapper.Tests
 {
@@ -54,11 +55,11 @@ namespace LINQWrapper.Tests
             builder.AddSelectClause("id");
             builder.AddFromClause("employees");
 
-            LazyDBQueryProvider provider = new LazyDBQueryProvider(mockConnection, builder);
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder);
 
-            Query<int> myQuery = new Query<int>(provider);
+            Query<Employee> myQuery = new Query<Employee>(provider);
 
-            List<int> resultList = myQuery.ToList();
+            List<Employee> resultList = myQuery.ToList();
 
             Assert.AreEqual(4, resultList.Count);
         }

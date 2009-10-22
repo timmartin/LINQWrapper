@@ -54,6 +54,7 @@
     <Compile Include="LINQExpressionTests.cs" />
     <Compile Include="MySQLBuilderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestTypes\Employee.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\IQToolkit\IQToolkit.csproj">

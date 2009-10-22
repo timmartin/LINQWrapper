@@ -14,9 +14,9 @@ namespace LINQWrapper
     /// I believe this class may actually be unnecessary
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class LazyDBQuery<T> : Query<T>
+    public class LazyDBQuery<T> : Query<T> where T : class, new()
     {
-        LazyDBQuery(LazyDBQueryProvider provider, SQLBuilder builder) :
+        LazyDBQuery(LazyDBQueryProvider<T> provider, SQLBuilder builder) :
             base(provider)
         {
         }

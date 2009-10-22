@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LINQWrapper
 {
-    internal class ObjectBuilder<T> : IEnumerable<T>, IEnumerable
+    internal class ObjectBuilder<T> : IEnumerable<T>, IEnumerable where T : class, new()
     {
         public ObjectBuilder(IDataReader reader)
         {
@@ -15,8 +15,17 @@ namespace LINQWrapper
 
             while (reader.Read())
             {
-                results.Add(default(T));
+                T obj = MakeObject(reader);
+                results.Add(obj);
             }
+        }
+
+        private T MakeObject(IDataReader reader)
+        {
+            T obj = new T();
+
+
+            return obj;
         }
 
         private List<T> results;
@@ -34,48 +43,9 @@ namespace LINQWrapper
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator();
+            return results.GetEnumerator();
         }
 
         #endregion
-
-        class Enumerator : IEnumerator<T>, IEnumerator, IDisposable
-        {
-            #region IEnumerator<T> Members
-
-            public T Current
-            {
-                get { return default(T); }
-            }
-
-            #endregion
-
-            #region IDisposable Members
-
-            public void Dispose()
-            {
-            }
-
-            #endregion
-
-            #region IEnumerator Members
-
-            object IEnumerator.Current
-            {
-                get { return null; }
-            }
-
-            public bool MoveNext()
-            {
-                return false;
-            }
-
-            public void Reset()
-            {
-                throw new NotImplementedException();
-            }
-
-            #endregion
-        }
     }
 }

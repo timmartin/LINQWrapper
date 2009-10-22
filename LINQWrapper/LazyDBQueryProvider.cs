@@ -9,7 +9,7 @@ using IQToolkit;
 
 namespace LINQWrapper
 {
-    public class LazyDBQueryProvider : QueryProvider
+    public class LazyDBQueryProvider<T> : QueryProvider where T : class, new()
     {
         public LazyDBQueryProvider(IDbConnection connection, SQLBuilder builder)
         {
@@ -37,7 +37,7 @@ namespace LINQWrapper
 
             IDataReader reader = cmd.ExecuteReader();
 
-            return new ObjectBuilder<int>(reader);
+            return new ObjectBuilder<T>(reader);
         }
 
         private IDbConnection connection;
