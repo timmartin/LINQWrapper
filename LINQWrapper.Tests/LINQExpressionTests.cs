@@ -115,7 +115,7 @@ namespace LINQWrapper.Tests
         /// causes different SQL to be produced
         /// </summary>
         [Test]
-        public void LazyOrdering()
+        public void LazyOrderingTest()
         {
             Mockery mocks = new Mockery();
 
@@ -155,6 +155,16 @@ namespace LINQWrapper.Tests
                                  select x;
 
             List<Employee> resultsList = orderedResults.ToList();
+        }
+
+        /// <summary>
+        /// Check that we can apply a LINQ Count() expression and have it turned into SQL
+        /// </summary>
+        [Test]
+        [Ignore("Not implemented yet")]
+        public void CountExpressionTest()
+        {
+
         }
     }
 }

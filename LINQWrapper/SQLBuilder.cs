@@ -50,6 +50,12 @@ namespace LINQWrapper
         void AddOrderByClause(string orderBy, SortDirection direction);
 
         /// <summary>
+        /// Causes the statement to return a count of the results, rather than a set of the results
+        /// themselves
+        /// </summary>
+        void AddCountClause();
+
+        /// <summary>
         /// Set the number of results to skip over in the ordered result set
         /// </summary>
         /// <param name="numResults"></param>

@@ -19,6 +19,7 @@ namespace LINQWrapper
             selectExpressions = new List<string>();
             fromExpressions = new List<string>();
             orderExpressions = new List<OrderExpression>();
+            countQuery = false;
         }
 
         #region SQLBuilder Members
@@ -86,6 +87,11 @@ namespace LINQWrapper
             orderExpressions.Add(new OrderExpression() { Expression = orderBy, Direction = direction });
         }
 
+        public void AddCountClause()
+        {
+            countQuery = true;
+        }
+
         public void SkipResults(int numResults)
         {
             skipResults = numResults;
@@ -104,17 +110,24 @@ namespace LINQWrapper
         {
             builder.Append("SELECT ");
 
-            bool first = true;
-
-            foreach (string expression in selectExpressions)
+            if (countQuery)
             {
-                if (!first)
-                {
-                    builder.Append(", ");
-                }
+                builder.Append("COUNT(*)");
+            }
+            else
+            {
+                bool first = true;
 
-                builder.Append(expression);
-                first = false;
+                foreach (string expression in selectExpressions)
+                {
+                    if (!first)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append(expression);
+                    first = false;
+                }
             }
         }
 
@@ -197,6 +210,12 @@ namespace LINQWrapper
         private List<OrderExpression> orderExpressions;
         private Nullable<int> skipResults;
         private Nullable<int> takeResults;
+
+        /// <summary>
+        /// Set this to true to make this statement select a count of matching rows rather than
+        /// the rows themselves.
+        /// </summary>
+        private bool countQuery;
 
         #endregion
     }

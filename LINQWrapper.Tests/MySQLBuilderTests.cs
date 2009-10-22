@@ -116,5 +116,27 @@ namespace LINQWrapper.Tests
 
             Assert.AreEqual("SELECT id FROM employees ORDER BY name DESC;", stringBuilder.ToString());
         }
+
+        /// <summary>
+        /// Build an SQL statement with a COUNT() expression (the original SELECT expression
+        /// being overridden)
+        /// </summary>
+        [Test]
+        public void BuildExpression_Count()
+        {
+            MySQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id");
+            sqlBuilder.AddSelectClause("name");
+            sqlBuilder.AddFromClause("employees");
+
+            sqlBuilder.AddCountClause();
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT COUNT(*) FROM employees;", stringBuilder.ToString());
+        }
     }
 }
