@@ -35,7 +35,9 @@ namespace LINQWrapper
 
             cmd.CommandText = stringBuilder.ToString();
 
-            return new ObjectBuilder<int>();
+            IDataReader reader = cmd.ExecuteReader();
+
+            return new ObjectBuilder<int>(reader);
         }
 
         private IDbConnection connection;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
@@ -8,11 +9,23 @@ namespace LINQWrapper
 {
     internal class ObjectBuilder<T> : IEnumerable<T>, IEnumerable
     {
+        public ObjectBuilder(IDataReader reader)
+        {
+            results = new List<T>();
+
+            while (reader.Read())
+            {
+                results.Add(default(T));
+            }
+        }
+
+        private List<T> results;
+
         #region IEnumerable<T> Members
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new Enumerator();
+            return results.GetEnumerator();
         }
 
         #endregion

@@ -28,12 +28,26 @@ namespace LINQWrapper.Tests
 
             IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
 
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
             Expect.Once.On(mockConnection)
                 .Method("CreateCommand")
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
                 .SetProperty("CommandText").To("SELECT id FROM employees;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Exactly(4).On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
 
             SQLBuilder builder = new MySQLBuilder();
 
@@ -46,7 +60,7 @@ namespace LINQWrapper.Tests
 
             List<int> resultList = myQuery.ToList();
 
-            Assert.AreEqual(0, resultList.Count);
+            Assert.AreEqual(4, resultList.Count);
         }
     }
 }
