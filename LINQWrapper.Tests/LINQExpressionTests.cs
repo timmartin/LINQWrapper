@@ -84,6 +84,10 @@ namespace LINQWrapper.Tests
 
             SQLBuilder builder = new MySQLBuilder();
 
+            // NB: The select clause we're setting here isn't sufficient to instantiate the objects,
+            // which have two fields. This doesn't matter here since we are using mock objects
+            // anyway, and in practice it will be up to the author of the SQL statements to get details
+            // like this right.
             builder.AddSelectClause("id");
             builder.AddFromClause("employees");
 
@@ -104,6 +108,53 @@ namespace LINQWrapper.Tests
             Assert.AreEqual("Bob", resultList[1].Name);
             Assert.AreEqual("Charles", resultList[2].Name);
             Assert.AreEqual("Dan", resultList[3].Name);
+        }
+
+        /// <summary>
+        /// Check that when we call the OrderBy() method on an already-constructed query, it 
+        /// causes different SQL to be produced
+        /// </summary>
+        [Test]
+        public void LazyOrdering()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT id, name FROM employees ORDER BY name;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            // We return an empty result set from the mock reader. This doesn't matter much, since we
+            // verify that the ORDER BY is set in the SQL query executed.
+
+            SQLBuilder builder = new MySQLBuilder();
+
+            builder.AddSelectClause("id");
+            builder.AddSelectClause("name");
+            builder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder);
+            Query<Employee> myQuery = new Query<Employee>(provider);
+
+            var orderedResults = from x in myQuery
+                                 orderby x.Name
+                                 select x;
+
+            List<Employee> resultsList = orderedResults.ToList();
         }
     }
 }

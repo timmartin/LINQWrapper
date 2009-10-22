@@ -25,7 +25,7 @@ namespace LINQWrapper
         public override object Execute(Expression expression)
         {
             // TODO: Clone the builder here for repeatability?
-            QueryTranslator translator = new QueryTranslator(builder);
+            QueryTranslator<T> translator = new QueryTranslator<T>(builder);
             translator.Translate(expression);
 
             StringBuilder stringBuilder = new StringBuilder();
