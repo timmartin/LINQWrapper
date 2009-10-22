@@ -46,6 +46,14 @@ namespace LINQWrapper.Tests
                 .Method("Read")
                 .Will(Return.Value(true));
 
+            Expect.Exactly(4).On(mockReader)
+                .Get["id"]
+                .Will(Return.Value("42"));
+
+            Expect.Exactly(4).On(mockReader)
+                .Get["name"]
+                .Will(Return.Value("Bob Smith"));
+
             Expect.Once.On(mockReader)
                 .Method("Read")
                 .Will(Return.Value(false));
