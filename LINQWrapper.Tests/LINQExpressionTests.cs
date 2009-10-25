@@ -294,5 +294,65 @@ namespace LINQWrapper.Tests
 
             mocks.VerifyAllExpectationsHaveBeenMet();
         }
+
+        /// <summary>
+        /// Check that we can apply a LINQ Cast&lt;IPerson&gt;() operator and get appropriate
+        /// behaviour.
+        /// </summary>
+        [Test]
+        public void CastExpressionTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT id, name FROM employees;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["name"]
+                .Will(Return.Value("Alice"));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id");
+            sqlBuilder.AddSelectClause("name");
+            sqlBuilder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Employee> query = new Query<Employee>(provider);
+
+            IQueryable<IPerson> people = query.Cast<IPerson>();
+
+            List<IPerson> peopleList = people.ToList();
+
+            Assert.AreEqual(1, peopleList.Count);
+            Assert.IsInstanceOf<IPerson>(peopleList[0]); // This can't actually fail, but it's nice to record our intention
+        }
     }
 }

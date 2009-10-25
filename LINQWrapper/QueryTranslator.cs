@@ -7,20 +7,29 @@ using System.Text;
 
 using IQToolkit;
 using LINQWrapper.DBMapping;
+using LINQWrapper.DBOperations;
 
 namespace LINQWrapper
 {
-    internal class QueryTranslator<T> : ExpressionVisitor
+    internal class QueryTranslator<T> : ExpressionVisitor where T : class, new()
     {
         internal QueryTranslator(SQLBuilder builder)
         {
             this.builder = builder;
-            this.Aggregate = false;
         }
 
-        internal void Translate(Expression expression)
+        internal DBOperation Translate(Expression expression, DBOperation operationToDecorate)
         {
+            /* We start by setting the operation to be a simple SELECT on the DB. We then decorate this 
+             * expression with extra wrappers if we find out that we have to during processing. Structurally,
+             * this is a bit mucky since the SELECT ought to be the innermost expression, but we set it
+             * in the outermost stage of the recursion. */
+
+            resultantOperation = operationToDecorate;
+            
             this.Visit(expression);
+
+            return resultantOperation;
         }
 
         private static Expression StripQuotes(Expression e)
@@ -55,8 +64,21 @@ namespace LINQWrapper
                 }
                 else if (m.Method.Name == "Count")
                 {
-                    Aggregate = true;
                     builder.AddCountClause();
+
+                    // We can only apply a Count to an SQL execution operation
+                    resultantOperation = new AggregateReadOperation<T>((SQLExecutionOperation<T>)resultantOperation);
+                }
+                else if (m.Method.Name == "Cast")
+                {
+                    /* TODO: This code sucks */
+
+                    Type fromType = typeof(T);
+                    Type toType = m.Method.GetGenericArguments()[0];
+
+                    Type castOperationType = typeof(CastOperation<,>).MakeGenericType(new Type[] { fromType, toType });
+
+                    resultantOperation = (DBOperation) Activator.CreateInstance(castOperationType, new object[] { resultantOperation });
                 }
             }
 
@@ -96,11 +118,10 @@ namespace LINQWrapper
             throw new NotSupportedException(string.Format("The member '{0}' is not supported", m.Member.Name));
         }
 
-        public bool Aggregate
-        { get; private set; }
-
         private SQLBuilder builder;
 
         private string orderFieldName;
+
+        private DBOperation resultantOperation;
     }
 }

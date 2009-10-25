@@ -7,7 +7,7 @@ using LINQWrapper.DBMapping;
 
 namespace LINQWrapper.Tests.TestTypes
 {
-    internal class Employee
+    internal class Employee : IPerson
     {
         [FieldMapping("id")]
         public int ID
