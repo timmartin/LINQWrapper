@@ -37,7 +37,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
-                .SetProperty("CommandText").To("SELECT id FROM employees;");
+                .SetProperty("CommandText").To("SELECT DISTINCT id FROM employees;");
 
             Expect.Once.On(mockCommand)
                 .Method("ExecuteReader")
@@ -134,7 +134,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
-                .SetProperty("CommandText").To("SELECT id, name FROM employees ORDER BY name;");
+                .SetProperty("CommandText").To("SELECT DISTINCT id, name FROM employees ORDER BY name;");
 
             Expect.Once.On(mockCommand)
                 .Method("ExecuteReader")
@@ -240,7 +240,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
-                .SetProperty("CommandText").To("SELECT id, name FROM employees WHERE  name=@name ;");
+                .SetProperty("CommandText").To("SELECT DISTINCT id, name FROM employees WHERE  name=@name ;");
 
             Expect.Once.On(mockCommand)
                 .Method("CreateParameter")

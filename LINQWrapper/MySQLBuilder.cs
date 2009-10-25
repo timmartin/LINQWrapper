@@ -116,6 +116,8 @@ namespace LINQWrapper
             }
             else
             {
+                builder.Append("DISTINCT ");
+
                 bool first = true;
 
                 foreach (string expression in selectExpressions)

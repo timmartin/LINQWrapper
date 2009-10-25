@@ -37,7 +37,7 @@ namespace LINQWrapper.Tests
             StringBuilder sBuilder = new StringBuilder();
             builder.BuildExpression(sBuilder);
 
-            Assert.AreEqual("SELECT 1;", sBuilder.ToString());
+            Assert.AreEqual("SELECT DISTINCT 1;", sBuilder.ToString());
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace LINQWrapper.Tests
 
             sqlBuilder.BuildExpression(stringBuilder);
 
-            Assert.AreEqual("SELECT 1 WHERE  1 = 0 ;", stringBuilder.ToString());
+            Assert.AreEqual("SELECT DISTINCT 1 WHERE  1 = 0 ;", stringBuilder.ToString());
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace LINQWrapper.Tests
 
             sqlBuilder.BuildExpression(stringBuilder);
 
-            Assert.AreEqual("SELECT name FROM employees WHERE  id=42 ;", stringBuilder.ToString());
+            Assert.AreEqual("SELECT DISTINCT name FROM employees WHERE  id=42 ;", stringBuilder.ToString());
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace LINQWrapper.Tests
 
             sqlBuilder.BuildExpression(stringBuilder);
 
-            Assert.AreEqual("SELECT id FROM employees LIMIT 100, 10;", stringBuilder.ToString());
+            Assert.AreEqual("SELECT DISTINCT id FROM employees LIMIT 100, 10;", stringBuilder.ToString());
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace LINQWrapper.Tests
 
             sqlBuilder.BuildExpression(stringBuilder);
 
-            Assert.AreEqual("SELECT id FROM employees ORDER BY name DESC;", stringBuilder.ToString());
+            Assert.AreEqual("SELECT DISTINCT id FROM employees ORDER BY name DESC;", stringBuilder.ToString());
         }
 
         /// <summary>
