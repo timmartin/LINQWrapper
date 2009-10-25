@@ -18,6 +18,7 @@ namespace LINQWrapper
         {
             selectExpressions = new List<string>();
             fromExpressions = new List<string>();
+            joins = new List<JoinDetails>();
             orderExpressions = new List<OrderExpression>();
             countQuery = false;
         }
@@ -57,6 +58,11 @@ namespace LINQWrapper
         public void AddFromClause(string fromClause)
         {
             fromExpressions.Add(fromClause);
+        }
+
+        public void AddJoinClause(string joinKeyword, string tableToJoin, string condition)
+        {
+            joins.Add(new JoinDetails(joinKeyword, tableToJoin, condition));
         }
 
         public void AddWhereClause(string whereClause, ExpressionType combine)
@@ -151,6 +157,19 @@ namespace LINQWrapper
                     builder.Append(expression);
                     first = false;
                 }
+
+                // Note that we only add JOIN entries if we already have at least one FROM
+                // entry. This makes sense, since you can't JOIN without a FROM, but perhaps
+                // we ought to throw an error if this fails?
+                foreach (JoinDetails join in joins)
+                {
+                    builder.Append(" ");
+                    builder.Append(join.JoinKeyword);
+                    builder.Append(" ");
+                    builder.Append(join.TableName);
+                    builder.Append(" ON ");
+                    builder.Append(join.Constraint);
+                }
             }
         }
 
@@ -208,6 +227,7 @@ namespace LINQWrapper
 
         private List<string> selectExpressions;
         private List<string> fromExpressions;
+        private List<JoinDetails> joins;
         private Constraint whereConstraint;
         private List<OrderExpression> orderExpressions;
         private Nullable<int> skipResults;

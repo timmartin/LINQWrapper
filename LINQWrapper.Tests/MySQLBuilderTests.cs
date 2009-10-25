@@ -138,5 +138,24 @@ namespace LINQWrapper.Tests
 
             Assert.AreEqual("SELECT COUNT(*) AS numrows FROM employees;", stringBuilder.ToString());
         }
+
+        /// <summary>
+        /// Check that we can build an expression using the JOIN format JOIN bar ON bar.id = foo.id
+        /// </summary>
+        [Test]
+        public void BuildExpression_ANSIJoin()
+        {
+            MySQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id");
+            sqlBuilder.AddFromClause("foo");
+            sqlBuilder.AddJoinClause("LEFT JOIN", "bar", "bar.id = foo.id");
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT DISTINCT id FROM foo LEFT JOIN bar ON bar.id = foo.id;", stringBuilder.ToString());
+        }
     }
 }

@@ -52,6 +52,7 @@
     <Compile Include="DBOperations\DBOperation.cs" />
     <Compile Include="DBOperations\SQLExecutionOperation.cs" />
     <Compile Include="Exceptions\IncompleteQueryException.cs" />
+    <Compile Include="JoinDetails.cs" />
     <Compile Include="LazyDBQueryProvider.cs" />
     <Compile Include="MySQLBuilder.cs" />
     <Compile Include="ObjectBuilder.cs" />

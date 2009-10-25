@@ -34,6 +34,21 @@ namespace LINQWrapper
         void AddFromClause(string fromClause);
 
         /// <summary>
+        /// Add a JOIN clause to the query. Before the expression is built, you must also submit a plain
+        /// FROM clause.
+        /// </summary>
+        /// <remarks>
+        /// There's an abstraction leak here, in that we allow anything to be specified as the join keyword,
+        /// even a DBMS-specific join type (indeed, that's one of the main reasons for having this as a free
+        /// string). There's no other way to support this without preventing the user from making DBMS-specific
+        /// calls when they need to; we assume they know what they're doing.
+        /// </remarks>
+        /// <param name="joinKeyword">The keyword to use in the join, e.g. "JOIN", "LEFT JOIN", etc.</param>
+        /// <param name="table"></param>
+        /// <param name="condition"></param>
+        void AddJoinClause(string joinKeyword, string table, string condition);
+
+        /// <summary>
         /// Add a WHERE clause to the statement
         /// </summary>
         /// <param name="whereClause"></param>
