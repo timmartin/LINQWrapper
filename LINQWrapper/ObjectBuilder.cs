@@ -35,7 +35,7 @@ namespace LINQWrapper
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private T MakeObject(IDataReader reader)
+        private static T MakeObject(IDataReader reader)
         {
             T obj = new T();
 
@@ -51,18 +51,46 @@ namespace LINQWrapper
 
                 Type targetType = property.PropertyType;
 
-                if (targetType == typeof(int))
-                {
-                    int value = int.Parse(reader[fieldName].ToString());
+                object dbValue = reader[fieldName];
 
-                    property.SetValue(obj, value, null);
-                }
-                else if (targetType == typeof(string))
+                if (!(dbValue is DBNull))
                 {
-                    string value = reader[fieldName].ToString();
+                    if (targetType == typeof(int))
+                    {
+                        int value = int.Parse(dbValue.ToString());
 
-                    property.SetValue(obj, value, null);
+                        property.SetValue(obj, value, null);
+                    }
+                    else if (targetType == typeof(string))
+                    {
+                        string value = dbValue.ToString();
+
+                        property.SetValue(obj, value, null);
+                    }
                 }
+            }
+
+            /* Now we find any properties of class type that we ought to instantiate
+             * recursively */
+            var propertiesToRecurse = from property in objectType.GetProperties()
+                                      where property.GetCustomAttributes(typeof(RecursiveFetchAttribute), false).Any()
+                                      select property;
+
+            foreach (PropertyInfo property in propertiesToRecurse)
+            {
+                Type propertyType = property.PropertyType;
+
+                RecursiveFetchAttribute attr = (RecursiveFetchAttribute)property.GetCustomAttributes(typeof(RecursiveFetchAttribute), false).Single();
+                if (attr.TypeToConstruct != null)
+                {
+                    propertyType = attr.TypeToConstruct;
+                }
+
+                Type builderType = typeof(ObjectBuilder<>).MakeGenericType(new Type[] { propertyType });
+                MethodInfo method = builderType.GetMethod("MakeObject", BindingFlags.Static | BindingFlags.NonPublic);
+                object subObject = method.Invoke(null, new object[] { reader });
+
+                property.SetValue(obj, subObject, null);
             }
 
             return obj;

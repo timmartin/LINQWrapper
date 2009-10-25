@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DBMapping\FieldMappingAttribute.cs" />
+    <Compile Include="DBMapping\RecursiveFetchAttribute.cs" />
     <Compile Include="Exceptions\IncompleteQueryException.cs" />
     <Compile Include="LazyDBQueryProvider.cs" />
     <Compile Include="MySQLBuilder.cs" />
