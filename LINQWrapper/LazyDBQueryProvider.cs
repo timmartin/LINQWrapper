@@ -44,18 +44,23 @@ namespace LINQWrapper
                 cmd.Parameters.Add(newParam);
             }
 
-            IDataReader reader = cmd.ExecuteReader();
-
-            if (translator.Aggregate)
+            // TODO: We need to be a bit careful about lifetime here. At the moment the
+            // ObjectBuilder is done with the reader as soon as the constructor finishes,
+            // but this might not always be the case. We need a more durable solution that
+            // doesn't bind the behaviour of this code to the of the ObjectBuilder
+            using (IDataReader reader = cmd.ExecuteReader())
             {
-                // We're going to assume this is a count query, since this is the only
-                // aggregate we support at the moment. This needs to be tidied up.
-                reader.Read();
-                return int.Parse(reader["numrows"].ToString());
-            }
-            else
-            {
-                return new ObjectBuilder<T>(reader);
+                if (translator.Aggregate)
+                {
+                    // We're going to assume this is a count query, since this is the only
+                    // aggregate we support at the moment. This needs to be tidied up.
+                    reader.Read();
+                    return int.Parse(reader["numrows"].ToString());
+                }
+                else
+                {
+                    return new ObjectBuilder<T>(reader);
+                }
             }
         }
 

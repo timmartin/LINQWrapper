@@ -83,6 +83,9 @@ namespace LINQWrapper.Tests
                 .Method("Read")
                 .Will(Return.Value(false));
 
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
             SQLBuilder builder = new MySQLBuilder();
 
             // NB: The select clause we're setting here isn't sufficient to instantiate the objects,
@@ -109,6 +112,8 @@ namespace LINQWrapper.Tests
             Assert.AreEqual("Bob", resultList[1].Name);
             Assert.AreEqual("Charles", resultList[2].Name);
             Assert.AreEqual("Dan", resultList[3].Name);
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
         }
 
         /// <summary>
@@ -139,6 +144,9 @@ namespace LINQWrapper.Tests
                 .Method("Read")
                 .Will(Return.Value(false));
 
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
             // We return an empty result set from the mock reader. This doesn't matter much, since we
             // verify that the ORDER BY is set in the SQL query executed.
 
@@ -156,6 +164,8 @@ namespace LINQWrapper.Tests
                                  select x;
 
             List<Employee> resultsList = orderedResults.ToList();
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
         }
 
         /// <summary>
@@ -185,13 +195,19 @@ namespace LINQWrapper.Tests
                 .Method("Read")
                 .Will(Return.Value(true));
 
-            Expect.Once.On(mockReader)
-                .Method("Read")
-                .Will(Return.Value(false));
+            // Note that we only call the reader once, rather than iterating through until
+            // it returns false. This works fine when we know we have only one result,
+            // which will be the case until we implement GroupBy
+            /*Expect.Once.On(mockReader)
+                  .Method("Read")
+                  .Will(Return.Value(false));*/
 
             Expect.Once.On(mockReader)
                 .Get["numrows"]
                 .Will(Return.Value(16));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
 
             SQLBuilder builder = new MySQLBuilder();
 
@@ -204,6 +220,8 @@ namespace LINQWrapper.Tests
             Query<Employee> myQuery = new Query<Employee>(provider);
 
             Assert.AreEqual(16, myQuery.Count());
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
         }
 
         [Test]
@@ -252,6 +270,9 @@ namespace LINQWrapper.Tests
             Expect.Once.On(mockReader)
                 .Method("Read")
                 .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
 
             SQLBuilder sqlBuilder = new MySQLBuilder();
 
