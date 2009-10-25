@@ -11,10 +11,11 @@ namespace LINQWrapper
 {
     public class LazyDBQueryProvider<T> : QueryProvider where T : class, new()
     {
-        public LazyDBQueryProvider(IDbConnection connection, SQLBuilder builder)
+        public LazyDBQueryProvider(IDbConnection connection, SQLBuilder builder, Dictionary<string, object> parameters)
         {
             this.connection = connection;
             this.builder = builder;
+            this.parameters = parameters;
         }
 
         public override string GetQueryText(Expression expression)
@@ -35,6 +36,14 @@ namespace LINQWrapper
 
             cmd.CommandText = stringBuilder.ToString();
 
+            foreach (KeyValuePair<string, object> entry in parameters)
+            {
+                IDbDataParameter newParam = cmd.CreateParameter();
+                newParam.ParameterName = entry.Key;
+                newParam.Value = entry.Value;
+                cmd.Parameters.Add(newParam);
+            }
+
             IDataReader reader = cmd.ExecuteReader();
 
             if (translator.Aggregate)
@@ -52,5 +61,6 @@ namespace LINQWrapper
 
         private IDbConnection connection;
         private SQLBuilder builder;
+        private Dictionary<string, object> parameters;
     }
 }

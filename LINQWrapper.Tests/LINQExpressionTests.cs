@@ -92,7 +92,7 @@ namespace LINQWrapper.Tests
             builder.AddSelectClause("id");
             builder.AddFromClause("employees");
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder);
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder, new Dictionary<string, object>());
 
             Query<Employee> myQuery = new Query<Employee>(provider);
 
@@ -148,7 +148,7 @@ namespace LINQWrapper.Tests
             builder.AddSelectClause("name");
             builder.AddFromClause("employees");
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder);
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder, new Dictionary<string, object>());
             Query<Employee> myQuery = new Query<Employee>(provider);
 
             var orderedResults = from x in myQuery
@@ -200,10 +200,78 @@ namespace LINQWrapper.Tests
             builder.AddFromClause("employees");
             builder.AddWhereClause("name LIKE '%smith'", ExpressionType.And);
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder);
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder, new Dictionary<string, object>());
             Query<Employee> myQuery = new Query<Employee>(provider);
 
             Assert.AreEqual(16, myQuery.Count());
+        }
+
+        [Test]
+        public void SetParametersTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+            IDbDataParameter mockParameter = mocks.NewMock<IDbDataParameter>();
+            IDataParameterCollection mockParameterCollection = mocks.NewMock<IDataParameterCollection>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT id, name FROM employees WHERE  name=@name ;");
+
+            Expect.Once.On(mockCommand)
+                .Method("CreateParameter")
+                .Will(Return.Value(mockParameter));
+
+            Expect.Once.On(mockParameter)
+                .SetProperty("ParameterName").To("@name");
+
+            Expect.Once.On(mockParameter)
+                .SetProperty("Value").To("smith");
+
+            Expect.Once.On(mockCommand)
+                .GetProperty("Parameters")
+                .Will(Return.Value(mockParameterCollection));
+
+            Expect.Once.On(mockParameterCollection)
+                .Method("Add").With(mockParameter)
+                .Will(Return.Value(0));
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            // We don't return any values, since we don't need to test what we do with
+            // the returned values. The important thing to test is that the parameter
+            // methods above get called.
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id");
+            sqlBuilder.AddSelectClause("name");
+            sqlBuilder.AddFromClause("employees");
+            sqlBuilder.AddWhereClause("name=@name", ExpressionType.And);
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters["@name"] = "smith";
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, parameters);
+            Query<Employee> query = new Query<Employee>(provider);
+
+            List<Employee> employees = query.ToList();
+
+            // The important testing is done in the mock code. Provided the right 
+            // AddParameter stuff is called, we don't care what happens with the results
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
         }
     }
 }
