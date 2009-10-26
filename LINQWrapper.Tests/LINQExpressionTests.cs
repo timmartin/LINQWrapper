@@ -354,5 +354,90 @@ namespace LINQWrapper.Tests
             Assert.AreEqual(1, peopleList.Count);
             Assert.IsInstanceOf<IPerson>(peopleList[0]); // This can't actually fail, but it's nice to record our intention
         }
+
+        /// <summary>
+        /// Check that if we run the same query twice with slight modifications, it doesn't end up
+        /// wrecking the internal state. Note that we're not checking caching of results here, which 
+        /// is a separate issue.
+        /// </summary>
+        [Test]
+        public void QueryRepeatabilityTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand firstMockCommand = mocks.NewMock<IDbCommand>();
+            IDbCommand secondMockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader firstMockReader = mocks.NewMock<IDataReader>();
+            IDataReader secondMockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(firstMockCommand));
+
+            Expect.Once.On(firstMockCommand)
+                .SetProperty("CommandText").To("SELECT COUNT(*) AS numrows FROM employees WHERE  id=42 ;");
+
+            Expect.Once.On(firstMockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(firstMockReader));
+
+            Expect.Once.On(firstMockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(firstMockReader)
+                .Get["numrows"]
+                .Will(Return.Value(1));
+
+            Expect.Once.On(firstMockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(secondMockCommand));
+
+            Expect.Once.On(secondMockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT id, name FROM employees WHERE  id=42 ;");
+
+            Expect.Once.On(secondMockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(secondMockReader));
+
+            Expect.Once.On(secondMockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(secondMockReader)
+                .Get["id"]
+                .Will(Return.Value(1));
+
+            Expect.Once.On(secondMockReader)
+                .Get["name"]
+                .Will(Return.Value("Bob"));
+
+            Expect.Once.On(secondMockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(secondMockReader)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id");
+            sqlBuilder.AddSelectClause("name");
+            sqlBuilder.AddFromClause("employees");
+            sqlBuilder.AddWhereClause("id=42", ExpressionType.And);
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, new Dictionary<string, object>());
+
+            Query<Employee> query = new Query<Employee>(provider);
+
+            int numEmployees = query.Count();
+            Assert.AreEqual(1, numEmployees);
+
+            List<Employee> employees = query.ToList();
+        }
     }
 }

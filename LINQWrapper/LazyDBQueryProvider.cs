@@ -26,10 +26,10 @@ namespace LINQWrapper
 
         public override object Execute(Expression expression)
         {
-            // TODO: Clone the builder here for repeatability?
-            QueryTranslator<T> translator = new QueryTranslator<T>(builder);
+            SQLBuilder clonedBuilder = (SQLBuilder) builder.Clone();
+            QueryTranslator<T> translator = new QueryTranslator<T>(clonedBuilder);
 
-            SQLExecutionOperation<T> innerOperation = new SQLExecutionOperation<T>(connection, builder, parameters);
+            SQLExecutionOperation<T> innerOperation = new SQLExecutionOperation<T>(connection, clonedBuilder, parameters);
 
             DBOperation operation = translator.Translate(expression, innerOperation);
 
