@@ -48,35 +48,35 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(true));
 
             Expect.Once.On(mockReader)
-                .Get["id"]
+                .Get["employee_id"]
                 .Will(Return.Value("0"));
 
             Expect.Once.On(mockReader)
-                .Get["name"]
+                .Get["employee_name"]
                 .Will(Return.Value("Alice"));
 
             Expect.Once.On(mockReader)
-                .Get["id"]
+                .Get["employee_id"]
                 .Will(Return.Value("1"));
 
             Expect.Once.On(mockReader)
-                .Get["name"]
+                .Get["employee_name"]
                 .Will(Return.Value("Bob"));
 
             Expect.Once.On(mockReader)
-                .Get["id"]
+                .Get["employee_id"]
                 .Will(Return.Value("2"));
 
             Expect.Once.On(mockReader)
-                .Get["name"]
+                .Get["employee_name"]
                 .Will(Return.Value("Charles"));
 
             Expect.Once.On(mockReader)
-                .Get["id"]
+                .Get["employee_id"]
                 .Will(Return.Value("3"));
 
             Expect.Once.On(mockReader)
-                .Get["name"]
+                .Get["employee_name"]
                 .Will(Return.Value("Dan"));
 
             Expect.Once.On(mockReader)
@@ -313,7 +313,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
-                .SetProperty("CommandText").To("SELECT DISTINCT id, name FROM employees;");
+                .SetProperty("CommandText").To("SELECT DISTINCT id AS employee_id, name AS employee_name FROM employees;");
 
             Expect.Once.On(mockCommand)
                 .Method("ExecuteReader")
@@ -324,11 +324,11 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(true));
 
             Expect.Once.On(mockReader)
-                .Get["id"]
+                .Get["employee_id"]
                 .Will(Return.Value("0"));
 
             Expect.Once.On(mockReader)
-                .Get["name"]
+                .Get["employee_name"]
                 .Will(Return.Value("Alice"));
 
             Expect.Once.On(mockReader)
@@ -340,8 +340,8 @@ namespace LINQWrapper.Tests
 
             SQLBuilder sqlBuilder = new MySQLBuilder();
 
-            sqlBuilder.AddSelectClause("id");
-            sqlBuilder.AddSelectClause("name");
+            sqlBuilder.AddSelectClause("id AS employee_id");
+            sqlBuilder.AddSelectClause("name AS employee_name");
             sqlBuilder.AddFromClause("employees");
 
             LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, new Dictionary<string, object>());
@@ -398,7 +398,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(secondMockCommand));
 
             Expect.Once.On(secondMockCommand)
-                .SetProperty("CommandText").To("SELECT DISTINCT id, name FROM employees WHERE  id=42 ;");
+                .SetProperty("CommandText").To("SELECT DISTINCT id AS employee_id, name AS employee_name FROM employees WHERE  id=42 ;");
 
             Expect.Once.On(secondMockCommand)
                 .Method("ExecuteReader")
@@ -409,11 +409,11 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(true));
 
             Expect.Once.On(secondMockReader)
-                .Get["id"]
+                .Get["employee_id"]
                 .Will(Return.Value(1));
 
             Expect.Once.On(secondMockReader)
-                .Get["name"]
+                .Get["employee_name"]
                 .Will(Return.Value("Bob"));
 
             Expect.Once.On(secondMockReader)
@@ -425,8 +425,8 @@ namespace LINQWrapper.Tests
 
             SQLBuilder sqlBuilder = new MySQLBuilder();
 
-            sqlBuilder.AddSelectClause("id");
-            sqlBuilder.AddSelectClause("name");
+            sqlBuilder.AddSelectClause("id AS employee_id");
+            sqlBuilder.AddSelectClause("name AS employee_name");
             sqlBuilder.AddFromClause("employees");
             sqlBuilder.AddWhereClause("id=42", ExpressionType.And);
 

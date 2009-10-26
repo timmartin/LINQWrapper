@@ -47,7 +47,7 @@ namespace LINQWrapper
 
             foreach (PropertyInfo property in annotatedProperties)
             {
-                string fieldName = ((FieldMappingAttribute)property.GetCustomAttributes(typeof(FieldMappingAttribute), false).First()).FieldName;
+                string fieldName = ((FieldMappingAttribute)property.GetCustomAttributes(typeof(FieldMappingAttribute), false).First()).UniqueFieldAlias;
 
                 Type targetType = property.PropertyType;
 

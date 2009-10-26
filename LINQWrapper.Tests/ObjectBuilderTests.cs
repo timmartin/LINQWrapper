@@ -29,11 +29,11 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(true));
 
             Expect.Once.On(reader)
-                .Get["id"]
+                .Get["employee_id"]
                 .Will(Return.Value(12));
 
             Expect.Once.On(reader)
-                .Get["name"]
+                .Get["employee_name"]
                 .Will(Return.Value("Alice"));
 
             Expect.Once.On(reader)
