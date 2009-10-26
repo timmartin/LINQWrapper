@@ -8,6 +8,8 @@ using NUnit.Framework;
 
 using LINQWrapper.Exceptions;
 
+using LINQWrapper.Tests.TestTypes;
+
 namespace LINQWrapper.Tests
 {
     [TestFixture]
@@ -156,6 +158,25 @@ namespace LINQWrapper.Tests
             sqlBuilder.BuildExpression(stringBuilder);
 
             Assert.AreEqual("SELECT DISTINCT id FROM foo LEFT JOIN bar ON bar.id = foo.id;", stringBuilder.ToString());
+        }
+
+        /// <summary>
+        /// Check that we can add all fields to the SELECT clause based only on a type (and inferring
+        /// from the annotations on the type)
+        /// </summary>
+        [Test]
+        public void BuildExpression_TypeSelect()
+        {
+            MySQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectTypeClause("employees", typeof(Employee));
+            sqlBuilder.AddFromClause("employees");
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT DISTINCT employees.id AS id, employees.name AS name FROM employees;", stringBuilder.ToString());
         }
 
         [Test]

@@ -27,6 +27,14 @@ namespace LINQWrapper
         void AddSelectClause(string selectClause);
 
         /// <summary>
+        /// Add all the necessary entries to the SELECT clause for a particular type, which must have
+        /// attributes set on its properties so the field names can be determined
+        /// </summary>
+        /// <param name="tableName">The table name (or alias) to select from</param>
+        /// <param name="typeToSelect"></param>
+        void AddSelectTypeClause(string tableName, Type typeToSelect);
+
+        /// <summary>
         /// Add an expression to the FROM clause, i.e. a table to select from (sub-selects are being
         /// ignored for the moment)
         /// </summary>

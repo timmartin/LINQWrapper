@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
+using LINQWrapper.DBMapping;
 using LINQWrapper.Exceptions;
 using LINQWrapper.SQLExpressions;
 
@@ -75,6 +77,19 @@ namespace LINQWrapper
         public void AddSelectClause(string selectClause)
         {
             selectExpressions.Add(selectClause);
+        }
+
+        public void AddSelectTypeClause(string TableName, Type typeToSelect)
+        {
+            var annotatedProperties = from property in typeToSelect.GetProperties()
+                                      where property.GetCustomAttributes(typeof(FieldMappingAttribute), false).Any()
+                                      select property;
+
+            foreach (PropertyInfo property in annotatedProperties)
+            {
+                FieldMappingAttribute attr = (FieldMappingAttribute) property.GetCustomAttributes(typeof(FieldMappingAttribute), false).Single();
+                AddSelectClause(string.Format("{0}.{1} AS {2}", TableName, attr.FieldName, attr.UniqueFieldAlias));
+            }
         }
 
         public void AddFromClause(string fromClause)
