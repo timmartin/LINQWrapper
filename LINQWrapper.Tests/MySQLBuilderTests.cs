@@ -176,7 +176,7 @@ namespace LINQWrapper.Tests
 
             sqlBuilder.BuildExpression(stringBuilder);
 
-            Assert.AreEqual("SELECT DISTINCT employees.id AS id, employees.name AS name FROM employees;", stringBuilder.ToString());
+            Assert.AreEqual("SELECT DISTINCT employees.id AS employee_id, employees.name AS employee_name FROM employees;", stringBuilder.ToString());
         }
 
         [Test]

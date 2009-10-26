@@ -9,14 +9,14 @@ namespace LINQWrapper.Tests.TestTypes
 {
     internal class Employee : IPerson
     {
-        [FieldMapping("id")]
+        [FieldMapping("id", "employee_id")]
         public int ID
         {
             get;
             set; 
         }
 
-        [FieldMapping("name")]
+        [FieldMapping("name", "employee_name")]
         public string Name
         {
             get;
