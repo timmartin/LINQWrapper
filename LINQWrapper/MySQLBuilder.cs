@@ -23,6 +23,28 @@ namespace LINQWrapper
             countQuery = false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// This needs further testing / investigation. In particular, I'm not sure about the aliasing of the
+        /// whereConstraint and orderExpressions members
+        /// </remarks>
+        /// <returns></returns>
+        public MySQLBuilder Clone()
+        {
+            return new MySQLBuilder()
+            {
+                selectExpressions = new List<string>(this.selectExpressions),
+                fromExpressions = new List<string>(this.fromExpressions),
+                joins = new List<JoinDetails>(this.joins),
+                whereConstraint = this.whereConstraint,
+                orderExpressions = new List<OrderExpression>(this.orderExpressions),
+                skipResults = this.skipResults,
+                takeResults = this.takeResults
+            };
+        }
+
         #region SQLBuilder Members
 
         public void BuildExpression(StringBuilder builder)
@@ -106,6 +128,15 @@ namespace LINQWrapper
         public void TakeResults(int numResults)
         {
             takeResults = numResults;
+        }
+
+        #endregion
+
+        #region ICloneable Members
+
+        object ICloneable.Clone()
+        {
+            return Clone();
         }
 
         #endregion

@@ -10,7 +10,7 @@ namespace LINQWrapper
     /// Class that acts a little like StringBuilder, but for building SQL. It copes with the
     /// various parts of the expression being added out of order.
     /// </summary>
-    public interface SQLBuilder
+    public interface SQLBuilder : ICloneable
     {
         /// <summary>
         /// Build the current state of the SQL expression into the StringBuilder provided

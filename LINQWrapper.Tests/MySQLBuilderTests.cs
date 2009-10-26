@@ -157,5 +157,30 @@ namespace LINQWrapper.Tests
 
             Assert.AreEqual("SELECT DISTINCT id FROM foo LEFT JOIN bar ON bar.id = foo.id;", stringBuilder.ToString());
         }
+
+        [Test]
+        public void Clone_SimpleTest()
+        {
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("name");
+            sqlBuilder.AddFromClause("employees");
+            sqlBuilder.AddWhereClause("id=42", ExpressionType.And);
+
+            SQLBuilder clonedBuilder = (SQLBuilder) sqlBuilder.Clone();
+
+            sqlBuilder.AddCountClause();
+
+            StringBuilder stringBuilder = new StringBuilder();
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT COUNT(*) AS numrows FROM employees WHERE  id=42 ;", stringBuilder.ToString());
+
+            stringBuilder = new StringBuilder();
+
+            clonedBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT DISTINCT name FROM employees WHERE  id=42 ;", stringBuilder.ToString());
+        }
     }
 }
