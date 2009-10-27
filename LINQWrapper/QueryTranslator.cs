@@ -80,6 +80,56 @@ namespace LINQWrapper
 
                     resultantOperation = (DBOperation) Activator.CreateInstance(castOperationType, new object[] { resultantOperation });
                 }
+                else if (m.Method.Name == "Skip")
+                {
+                    this.Visit(m.Arguments[0]);
+
+                    if (!(resultantOperation is SQLExecutionOperation<T>))
+                    {
+                        throw new Exception("Can only apply Skip() directly to a database select operation");
+                    }
+
+                    SQLExecutionOperation<T> operation = (SQLExecutionOperation<T>)resultantOperation;
+
+                    if (!(m.Arguments[1] is ConstantExpression))
+                    {
+                        throw new Exception("Can only apply Skip() to constant expressions");
+                    }
+
+                    ConstantExpression skipExpression = (ConstantExpression)m.Arguments[1];
+
+                    if (skipExpression.Type != typeof(int))
+                    {
+                        throw new Exception("Can only apply Skip to arguments of integer type");
+                    }
+
+                    operation.SetSkipValue((int) skipExpression.Value);
+                }
+                else if (m.Method.Name == "Take")
+                {
+                    this.Visit(m.Arguments[0]);
+
+                    if (!(resultantOperation is SQLExecutionOperation<T>))
+                    {
+                        throw new Exception("Can only apply Take() directly to a database select operation");
+                    }
+
+                    SQLExecutionOperation<T> operation = (SQLExecutionOperation<T>)resultantOperation;
+
+                    if (!(m.Arguments[1] is ConstantExpression))
+                    {
+                        throw new Exception("Can only apply Take() to constant expressions");
+                    }
+
+                    ConstantExpression takeExpression = (ConstantExpression)m.Arguments[1];
+
+                    if (takeExpression.Type != typeof(int))
+                    {
+                        throw new Exception("Can only apply Take() to arguments of integer type");
+                    }
+
+                    operation.SetTakeValue((int)takeExpression.Value);
+                }
             }
 
             return m;

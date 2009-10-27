@@ -53,6 +53,16 @@ namespace LINQWrapper.DBOperations
             return cmd.ExecuteReader();
         }
 
+        public void SetSkipValue(int skipValue)
+        {
+            sqlBuilder.SkipResults(skipValue);
+        }
+
+        public void SetTakeValue(int takeValue)
+        {
+            sqlBuilder.TakeResults(takeValue);
+        }
+
         private IDbConnection connection;
         private SQLBuilder sqlBuilder;
         private Dictionary<string, object> parameters;

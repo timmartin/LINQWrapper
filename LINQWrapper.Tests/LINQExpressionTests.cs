@@ -439,5 +439,63 @@ namespace LINQWrapper.Tests
 
             List<Employee> employees = query.ToList();
         }
+
+        /// <summary>
+        /// Check that we can do expressions with Skip() and Take() in them
+        /// </summary>
+        [Test]
+        public void SkipTakeTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT id AS employee_id, name AS employee_name FROM employees LIMIT 10, 15;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_name"]
+                .Will(Return.Value("Alice"));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id AS employee_id");
+            sqlBuilder.AddSelectClause("name AS employee_name");
+            sqlBuilder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Employee> query = new Query<Employee>(provider);
+
+            List<Employee> employeeList = query.Skip(10).Take(15).ToList();
+
+            Assert.AreEqual(1, employeeList.Count); // Though we asked for 15 results, there was only one returned
+            Assert.AreEqual(0, employeeList[0].ID);
+            Assert.AreEqual("Alice", employeeList[0].Name);
+        }
     }
 }
