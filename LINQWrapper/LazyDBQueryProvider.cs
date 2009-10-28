@@ -10,7 +10,7 @@ using LINQWrapper.DBOperations;
 
 namespace LINQWrapper
 {
-    public class LazyDBQueryProvider<T> : QueryProvider where T : class, new()
+    public class LazyDBQueryProvider<T> : QueryProvider, IDisposable where T : class, new()
     {
         public LazyDBQueryProvider(IDbConnection connection, SQLBuilder builder, Dictionary<string, object> parameters)
         {
@@ -34,6 +34,11 @@ namespace LINQWrapper
             DBOperation operation = translator.Translate(expression, innerOperation);
 
             return operation.Execute();
+        }
+
+        public void Dispose()
+        {
+            connection.Dispose();
         }
 
         private IDbConnection connection;

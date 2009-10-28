@@ -22,7 +22,14 @@ namespace IQToolkit
     /// <summary>
     /// A default implementation of IQueryable for use with QueryProvider
     /// </summary>
-    public class Query<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable
+    /// <remarks>
+    /// <para>
+    /// TM: I had to modify this to implement IDisposable so that the query can dispose of its provider.
+    /// I don't think this is the idiomatic way for LINQ providers to work, I'm still trying to figure
+    /// out what that would be.
+    /// </para>
+    /// </remarks>
+    public class Query<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable, IDisposable
     {
         IQueryProvider provider;
         Expression expression;
@@ -108,6 +115,14 @@ namespace IQToolkit
                     return iqt.GetQueryText(this.expression);
                 }
                 return "";
+            }
+        }
+
+        public void Dispose()
+        {
+            if (provider is IDisposable)
+            {
+                ((IDisposable)provider).Dispose();
             }
         }
     }
