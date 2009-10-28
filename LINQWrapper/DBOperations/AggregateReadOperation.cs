@@ -33,6 +33,25 @@ namespace LINQWrapper.DBOperations
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// We don't support Skip() and Take() expressions on aggregates at the moment, because they
+        /// are meaningless without support for GroupBy() (which we also don't have yet). However, 
+        /// technically the message that they are meaningless is an exaggeration.
+        /// </remarks>
+        /// <param name="skipValue"></param>
+        public void SetSkipValue(int skipValue)
+        {
+            throw new Exception("Applying Skip() to an aggregate operation is meaningless");
+        }
+
+        public void SetTakeValue(int takeValue)
+        {
+            throw new Exception("Applying Take() to an aggregate operation is meaningless");
+        }
+
         private SQLExecutionOperation<T> innerOperation;
     }
 }

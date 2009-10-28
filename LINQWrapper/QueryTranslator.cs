@@ -84,13 +84,6 @@ namespace LINQWrapper
                 {
                     this.Visit(m.Arguments[0]);
 
-                    if (!(resultantOperation is SQLExecutionOperation<T>))
-                    {
-                        throw new Exception("Can only apply Skip() directly to a database select operation");
-                    }
-
-                    SQLExecutionOperation<T> operation = (SQLExecutionOperation<T>)resultantOperation;
-
                     if (!(m.Arguments[1] is ConstantExpression))
                     {
                         throw new Exception("Can only apply Skip() to constant expressions");
@@ -103,18 +96,11 @@ namespace LINQWrapper
                         throw new Exception("Can only apply Skip to arguments of integer type");
                     }
 
-                    operation.SetSkipValue((int) skipExpression.Value);
+                    resultantOperation.SetSkipValue((int) skipExpression.Value);
                 }
                 else if (m.Method.Name == "Take")
                 {
                     this.Visit(m.Arguments[0]);
-
-                    if (!(resultantOperation is SQLExecutionOperation<T>))
-                    {
-                        throw new Exception("Can only apply Take() directly to a database select operation");
-                    }
-
-                    SQLExecutionOperation<T> operation = (SQLExecutionOperation<T>)resultantOperation;
 
                     if (!(m.Arguments[1] is ConstantExpression))
                     {
@@ -128,7 +114,7 @@ namespace LINQWrapper
                         throw new Exception("Can only apply Take() to arguments of integer type");
                     }
 
-                    operation.SetTakeValue((int)takeExpression.Value);
+                    resultantOperation.SetTakeValue((int)takeExpression.Value);
                 }
             }
 

@@ -20,6 +20,16 @@ namespace LINQWrapper.DBOperations
             return ((IEnumerable<FromType>)innerOperation.Execute()).Cast<ToType>();
         }
 
+        public void SetSkipValue(int skipValue)
+        {
+            innerOperation.SetSkipValue(skipValue);
+        }
+
+        public void SetTakeValue(int takeValue)
+        {
+            innerOperation.SetTakeValue(takeValue);
+        }
+
         #endregion
 
         private SQLExecutionOperation<FromType> innerOperation;

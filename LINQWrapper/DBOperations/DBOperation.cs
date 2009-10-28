@@ -15,5 +15,9 @@ namespace LINQWrapper.DBOperations
     public interface DBOperation
     {
         object Execute();
+
+        void SetSkipValue(int skipValue);
+
+        void SetTakeValue(int takeValue);
     }
 }
