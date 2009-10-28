@@ -29,7 +29,7 @@ namespace IQToolkit
     /// out what that would be.
     /// </para>
     /// </remarks>
-    public class Query<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable, IDisposable
+    public class Query<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable
     {
         IQueryProvider provider;
         Expression expression;
@@ -115,14 +115,6 @@ namespace IQToolkit
                     return iqt.GetQueryText(this.expression);
                 }
                 return "";
-            }
-        }
-
-        public void Dispose()
-        {
-            if (provider is IDisposable)
-            {
-                ((IDisposable)provider).Dispose();
             }
         }
     }

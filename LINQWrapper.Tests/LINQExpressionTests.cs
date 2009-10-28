@@ -86,6 +86,9 @@ namespace LINQWrapper.Tests
             Expect.Once.On(mockReader)
                 .Method("Dispose");
 
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
             SQLBuilder builder = new MySQLBuilder();
 
             // NB: The select clause we're setting here isn't sufficient to instantiate the objects,
@@ -95,7 +98,7 @@ namespace LINQWrapper.Tests
             builder.AddSelectClause("id");
             builder.AddFromClause("employees");
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder, new Dictionary<string, object>());
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, builder, new Dictionary<string, object>());
 
             Query<Employee> myQuery = new Query<Employee>(provider);
 
@@ -147,6 +150,9 @@ namespace LINQWrapper.Tests
             Expect.Once.On(mockReader)
                 .Method("Dispose");
 
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
             // We return an empty result set from the mock reader. This doesn't matter much, since we
             // verify that the ORDER BY is set in the SQL query executed.
 
@@ -156,7 +162,7 @@ namespace LINQWrapper.Tests
             builder.AddSelectClause("name");
             builder.AddFromClause("employees");
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder, new Dictionary<string, object>());
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, builder, new Dictionary<string, object>());
             Query<Employee> myQuery = new Query<Employee>(provider);
 
             var orderedResults = from x in myQuery
@@ -209,6 +215,9 @@ namespace LINQWrapper.Tests
             Expect.Once.On(mockReader)
                 .Method("Dispose");
 
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
             SQLBuilder builder = new MySQLBuilder();
 
             builder.AddSelectClause("id");
@@ -216,7 +225,7 @@ namespace LINQWrapper.Tests
             builder.AddFromClause("employees");
             builder.AddWhereClause("name LIKE '%smith'", ExpressionType.And);
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, builder, new Dictionary<string, object>());
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, builder, new Dictionary<string, object>());
             Query<Employee> myQuery = new Query<Employee>(provider);
 
             Assert.AreEqual(16, myQuery.Count());
@@ -274,6 +283,9 @@ namespace LINQWrapper.Tests
             Expect.Once.On(mockReader)
                 .Method("Dispose");
 
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
             SQLBuilder sqlBuilder = new MySQLBuilder();
 
             sqlBuilder.AddSelectClause("id");
@@ -284,7 +296,7 @@ namespace LINQWrapper.Tests
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["@name"] = "smith";
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, parameters);
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, parameters);
             Query<Employee> query = new Query<Employee>(provider);
 
             List<Employee> employees = query.ToList();
@@ -338,13 +350,16 @@ namespace LINQWrapper.Tests
             Expect.Once.On(mockReader)
                 .Method("Dispose");
 
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+            
             SQLBuilder sqlBuilder = new MySQLBuilder();
 
             sqlBuilder.AddSelectClause("id AS employee_id");
             sqlBuilder.AddSelectClause("name AS employee_name");
             sqlBuilder.AddFromClause("employees");
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, new Dictionary<string, object>());
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
             Query<Employee> query = new Query<Employee>(provider);
 
             IQueryable<IPerson> people = query.Cast<IPerson>();
@@ -423,6 +438,12 @@ namespace LINQWrapper.Tests
             Expect.Once.On(secondMockReader)
                 .Method("Dispose");
 
+            // NB: We're returning the same connection object twice, so we'll dispose it twice. This
+            // isn't really correct, but since these are mock objects nobody will know that they're
+            // the same object 
+            Expect.Exactly(2).On(mockConnection)
+                .Method("Dispose");
+
             SQLBuilder sqlBuilder = new MySQLBuilder();
 
             sqlBuilder.AddSelectClause("id AS employee_id");
@@ -430,7 +451,7 @@ namespace LINQWrapper.Tests
             sqlBuilder.AddFromClause("employees");
             sqlBuilder.AddWhereClause("id=42", ExpressionType.And);
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, new Dictionary<string, object>());
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
 
             Query<Employee> query = new Query<Employee>(provider);
 
@@ -482,13 +503,16 @@ namespace LINQWrapper.Tests
             Expect.Once.On(mockReader)
                 .Method("Dispose");
 
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
             SQLBuilder sqlBuilder = new MySQLBuilder();
 
             sqlBuilder.AddSelectClause("id AS employee_id");
             sqlBuilder.AddSelectClause("name AS employee_name");
             sqlBuilder.AddFromClause("employees");
 
-            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(mockConnection, sqlBuilder, new Dictionary<string, object>());
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
             Query<Employee> query = new Query<Employee>(provider);
 
             List<Employee> employeeList = query.Skip(10).Take(15).ToList();

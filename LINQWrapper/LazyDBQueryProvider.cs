@@ -10,11 +10,25 @@ using LINQWrapper.DBOperations;
 
 namespace LINQWrapper
 {
-    public class LazyDBQueryProvider<T> : QueryProvider, IDisposable where T : class, new()
+    public class LazyDBQueryProvider<T> : QueryProvider where T : class, new()
     {
-        public LazyDBQueryProvider(IDbConnection connection, SQLBuilder builder, Dictionary<string, object> parameters)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Originally, this constructor took a DB connection as a parameter. However, this makes it difficult
+        /// to control the lifetime of the connection, since it may need to last outside the scope in which the
+        /// query is created. We can't use IDisposable because clients will handle queries via an
+        /// IQueryable reference, and this can't be disposed.
+        /// </para>
+        /// </remarks>
+        /// <param name="connectionString">Function that can provide a database connection</param>
+        /// <param name="builder"></param>
+        /// <param name="parameters"></param>
+        public LazyDBQueryProvider(Func<IDbConnection> connectionProvider, SQLBuilder builder, Dictionary<string, object> parameters)
         {
-            this.connection = connection;
+            this.connectionProvider = connectionProvider;
             this.builder = builder;
             this.parameters = parameters;
         }
@@ -29,19 +43,17 @@ namespace LINQWrapper
             SQLBuilder clonedBuilder = (SQLBuilder) builder.Clone();
             QueryTranslator<T> translator = new QueryTranslator<T>(clonedBuilder);
 
-            SQLExecutionOperation<T> innerOperation = new SQLExecutionOperation<T>(connection, clonedBuilder, parameters);
+            using (IDbConnection connection = connectionProvider())
+            {
+                SQLExecutionOperation<T> innerOperation = new SQLExecutionOperation<T>(connection, clonedBuilder, parameters);
 
-            DBOperation operation = translator.Translate(expression, innerOperation);
+                DBOperation operation = translator.Translate(expression, innerOperation);
 
-            return operation.Execute();
+                return operation.Execute();
+            }
         }
 
-        public void Dispose()
-        {
-            connection.Dispose();
-        }
-
-        private IDbConnection connection;
+        private Func<IDbConnection> connectionProvider;
         private SQLBuilder builder;
         private Dictionary<string, object> parameters;
     }
