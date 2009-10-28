@@ -254,7 +254,7 @@ namespace LINQWrapper
             }
             else if (takeResults.HasValue)
             {
-                builder.AppendFormat(" LIMIT {0}", takeResults.HasValue);
+                builder.AppendFormat(" LIMIT {0}", takeResults.Value);
             }
             
             // TODO: The remaining case can't actually be implemented in MySQL. We can fudge it by setting

@@ -101,6 +101,26 @@ namespace LINQWrapper.Tests
         }
 
         /// <summary>
+        /// Build an expression where the only limit is on the number of results to take, and zero
+        /// results are skipped
+        /// </summary>
+        [Test]
+        public void BuildExpression_TakeLimit()
+        {
+            MySQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id");
+            sqlBuilder.AddFromClause("employees");
+            sqlBuilder.TakeResults(10);
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            sqlBuilder.BuildExpression(stringBuilder);
+
+            Assert.AreEqual("SELECT DISTINCT id FROM employees LIMIT 10;", stringBuilder.ToString());
+        }
+
+        /// <summary>
         /// Build an SQL statement with an ORDER BY clause
         /// </summary>
         [Test]
