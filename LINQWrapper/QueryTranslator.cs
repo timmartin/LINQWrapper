@@ -11,6 +11,11 @@ using LINQWrapper.DBOperations;
 
 namespace LINQWrapper
 {
+    /// <summary>
+    /// The query translator turns a LINQ expression into a structure that is closer to that of an
+    /// SQL query.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     internal class QueryTranslator<T> : ExpressionVisitor where T : class, new()
     {
         internal QueryTranslator(SQLBuilder builder)
@@ -72,6 +77,8 @@ namespace LINQWrapper
                 else if (m.Method.Name == "Cast")
                 {
                     /* TODO: This code sucks */
+
+                    this.Visit(m.Arguments[0]);
 
                     Type fromType = typeof(T);
                     Type toType = m.Method.GetGenericArguments()[0];

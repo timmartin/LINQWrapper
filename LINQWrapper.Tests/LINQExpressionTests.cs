@@ -521,5 +521,53 @@ namespace LINQWrapper.Tests
             Assert.AreEqual(0, employeeList[0].ID);
             Assert.AreEqual("Alice", employeeList[0].Name);
         }
+
+        /// <summary>
+        /// We had a bug when combining Take() with a Cast() expression
+        /// </summary>
+        [Test]
+        public void TakeAndCastTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT id AS employee_id, name AS employee_name FROM employees LIMIT 10;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id AS employee_id");
+            sqlBuilder.AddSelectClause("name AS employee_name");
+            sqlBuilder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Employee> query = new Query<Employee>(provider);
+
+            List<IPerson> employeeList = query.Take(10).Cast<IPerson>().ToList();
+
+            // We've already checked that the correct SQL is sent, so no need to check anything
+            // further here
+        }
     }
 }
