@@ -145,15 +145,17 @@ namespace LINQWrapper
 
                 PropertyInfo targetProperty = targetProperties.First(); // If there's more than one, something very strange has happened
 
-                var fieldNames = from attr in targetProperty.GetCustomAttributes(typeof(FieldMappingAttribute), false)
-                                 select ((FieldMappingAttribute)attr).FieldName;
+                var fieldAttributes = from attr in targetProperty.GetCustomAttributes(typeof(FieldMappingAttribute), false)
+                                      select (FieldMappingAttribute)attr;
 
-                if (!fieldNames.Any())
+                if (!fieldAttributes.Any())
                 {
                     throw new NotSupportedException(string.Format("Attempted to order by a property '{0}' that doesn't map to the database", parameterName));
                 }
 
-                orderFieldName = fieldNames.First();
+                FieldMappingAttribute fieldMapAttr = fieldAttributes.Single();
+
+                orderFieldName = fieldMapAttr.UniqueFieldAlias;
 
                 return m;
             }

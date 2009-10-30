@@ -137,7 +137,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
-                .SetProperty("CommandText").To("SELECT DISTINCT employees.id AS employee_id, employees.name AS employee_name FROM employees ORDER BY name;");
+                .SetProperty("CommandText").To("SELECT DISTINCT employees.id AS employee_id, employees.name AS employee_name FROM employees ORDER BY employee_name;");
 
             Expect.Once.On(mockCommand)
                 .Method("ExecuteReader")
