@@ -138,7 +138,13 @@ namespace LINQWrapper
 
             if (m.Expression != null && m.Expression.NodeType == ExpressionType.Parameter)
             {
-                currentlyProcessingType = m.Member.DeclaringType;
+                /* We're making an assumption here. We can't get the actual underlying type of the object
+                 * we're getting the member of here because we may have upcasted the expression - 
+                 * and if we've upcasted, we'll have lost all the nice reflection attributes, even if we've
+                 * preserved the necessary fields. Therefore we assume that we can only do a member access on
+                 * an instance if it's an instance of the class we're querying for - no other instance ought
+                 * to be in scope. I'm pretty sure this can go wrong, though */
+                currentlyProcessingType = typeof(T);
             }
 
             if (currentlyProcessingType != null)
