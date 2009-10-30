@@ -169,7 +169,12 @@ namespace LINQWrapper
                         throw new NotSupportedException(string.Format("Attempted to order by a property '{0}' that doesn't map to the database", parameterName));
                     }
 
-                    currentlyProcessingType = targetProperty.PropertyType;
+                    /* If the attribute has also specified an override type we should use this type for preference */
+                    currentlyProcessingType = recursiveAttributes.Single().TypeToConstruct;
+                    if (currentlyProcessingType == null)
+                    {
+                        currentlyProcessingType = targetProperty.PropertyType;
+                    }
                 }
                 else
                 {
