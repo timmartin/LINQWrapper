@@ -174,6 +174,59 @@ namespace LINQWrapper.Tests
         }
 
         /// <summary>
+        /// Check that we can do an orderby foo.Bar.Baz with a member of a member
+        /// </summary>
+        [Test]
+        public void OrderBySubMemberTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT products.id AS product_id, products.name AS product_name, suppliers.id AS supplier_id, suppliers.name AS supplier_name FROM products JOIN suppliers ON products.main_supplier = suppliers.id ORDER BY supplier_name;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder builder = new MySQLBuilder();
+
+            builder.AddSelectTypeClause("products", typeof(Product));
+            builder.AddSelectTypeClause("suppliers", typeof(Supplier));
+
+            builder.AddFromClause("products");
+            builder.AddJoinClause("JOIN", "suppliers", "products.main_supplier = suppliers.id");
+
+            LazyDBQueryProvider<Product> provider = new LazyDBQueryProvider<Product>(() => mockConnection, builder, new Dictionary<string, object>());
+            Query<Product> myQuery = new Query<Product>(provider);
+
+            var orderedResults = from x in myQuery
+                                 orderby x.MainSupplier.Name
+                                 select x;
+
+            List<Product> resultsList = orderedResults.ToList();
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
+
+        /// <summary>
         /// Check that we can apply a LINQ Count() expression and have it turned into SQL
         /// </summary>
         [Test]

@@ -9,11 +9,11 @@ namespace LINQWrapper.Tests.TestTypes
 {
     public class Product
     {
-        [FieldMapping("product_id")]
+        [FieldMapping("id", "product_id")]
         public int ID
         { get; set; }
 
-        [FieldMapping("product_name")]
+        [FieldMapping("name", "product_name")]
         public string Name
         { get; set; }
 

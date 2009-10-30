@@ -130,11 +130,22 @@ namespace LINQWrapper
 
         protected override Expression VisitMemberAccess(MemberExpression m)
         {
+            if (m.Expression.NodeType != ExpressionType.Parameter)
+            {
+                /* At this point, we should recurse until we find a member access that is applied to a parameter */
+                this.Visit(m.Expression);
+            }
+
             if (m.Expression != null && m.Expression.NodeType == ExpressionType.Parameter)
+            {
+                currentlyProcessingType = m.Member.DeclaringType;
+            }
+
+            if (currentlyProcessingType != null)
             {
                 string parameterName = m.Member.Name;
 
-                var targetProperties = from property in typeof(T).GetProperties()
+                var targetProperties = from property in currentlyProcessingType.GetProperties()
                                        where property.Name == parameterName
                                        select property;
 
@@ -143,29 +154,41 @@ namespace LINQWrapper
                     throw new NotSupportedException(string.Format("Attempted to use unsupported property '{0}'", parameterName));
                 }
 
-                PropertyInfo targetProperty = targetProperties.First(); // If there's more than one, something very strange has happened
+                PropertyInfo targetProperty = targetProperties.Single();
 
                 var fieldAttributes = from attr in targetProperty.GetCustomAttributes(typeof(FieldMappingAttribute), false)
                                       select (FieldMappingAttribute)attr;
 
                 if (!fieldAttributes.Any())
                 {
-                    throw new NotSupportedException(string.Format("Attempted to order by a property '{0}' that doesn't map to the database", parameterName));
+                    var recursiveAttributes = from attr in targetProperty.GetCustomAttributes(typeof(RecursiveFetchAttribute), false)
+                                              select (RecursiveFetchAttribute)attr;
+
+                    if (!recursiveAttributes.Any())
+                    {
+                        throw new NotSupportedException(string.Format("Attempted to order by a property '{0}' that doesn't map to the database", parameterName));
+                    }
+
+                    currentlyProcessingType = targetProperty.PropertyType;
                 }
+                else
+                {
+                    FieldMappingAttribute fieldMapAttr = fieldAttributes.Single();
 
-                FieldMappingAttribute fieldMapAttr = fieldAttributes.Single();
-
-                orderFieldName = fieldMapAttr.UniqueFieldAlias;
+                    orderFieldName = fieldMapAttr.UniqueFieldAlias;
+                }
 
                 return m;
             }
 
-            throw new NotSupportedException(string.Format("The member '{0}' is not supported", m.Member.Name));
+            throw new NotSupportedException(string.Format("Member {0} is not recognised", m.Member.Name));
         }
 
         private SQLBuilder builder;
 
         private string orderFieldName;
+
+        private Type currentlyProcessingType;
 
         private DBOperation resultantOperation;
     }
