@@ -137,7 +137,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
-                .SetProperty("CommandText").To("SELECT DISTINCT id, name FROM employees ORDER BY name;");
+                .SetProperty("CommandText").To("SELECT DISTINCT employees.id AS employee_id, employees.name AS employee_name FROM employees ORDER BY name;");
 
             Expect.Once.On(mockCommand)
                 .Method("ExecuteReader")
@@ -158,8 +158,7 @@ namespace LINQWrapper.Tests
 
             SQLBuilder builder = new MySQLBuilder();
 
-            builder.AddSelectClause("id");
-            builder.AddSelectClause("name");
+            builder.AddSelectTypeClause("employees", typeof(Employee));
             builder.AddFromClause("employees");
 
             LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, builder, new Dictionary<string, object>());
@@ -539,7 +538,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
-                .SetProperty("CommandText").To("SELECT DISTINCT id AS employee_id, name AS employee_name FROM employees LIMIT 10;");
+                .SetProperty("CommandText").To("SELECT DISTINCT employees.id AS employee_id, employees.name AS employee_name FROM employees LIMIT 10;");
 
             Expect.Once.On(mockCommand)
                 .Method("ExecuteReader")
@@ -557,8 +556,7 @@ namespace LINQWrapper.Tests
 
             SQLBuilder sqlBuilder = new MySQLBuilder();
 
-            sqlBuilder.AddSelectClause("id AS employee_id");
-            sqlBuilder.AddSelectClause("name AS employee_name");
+            sqlBuilder.AddSelectTypeClause("employees", typeof(Employee));
             sqlBuilder.AddFromClause("employees");
 
             LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
