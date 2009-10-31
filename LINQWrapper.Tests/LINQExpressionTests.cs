@@ -620,5 +620,77 @@ namespace LINQWrapper.Tests
             // We've already checked that the correct SQL is sent, so no need to check anything
             // further here
         }
+
+        /// <summary>
+        /// Check that if we execute the same query twice with the same expression, the query isn't
+        /// run twice.
+        /// </summary>
+        [Test]
+        public void QueryCachingTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT id FROM employees;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Exactly(1).On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_name"]
+                .Will(Return.Value("Alice"));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder builder = new MySQLBuilder();
+
+            // NB: The select clause we're setting here isn't sufficient to instantiate the objects,
+            // which have two fields. This doesn't matter here since we are using mock objects
+            // anyway, and in practice it will be up to the author of the SQL statements to get details
+            // like this right.
+            builder.AddSelectClause("id");
+            builder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, builder, new Dictionary<string, object>());
+
+            Query<Employee> myQuery = new Query<Employee>(provider);
+
+            List<Employee> resultList = myQuery.ToList();
+
+            Assert.AreEqual(1, resultList.Count);
+            Assert.AreEqual(0, resultList[0].ID);
+            Assert.AreEqual("Alice", resultList[0].Name);
+
+            // This shouldn't cause any further DB queries, since we've already evaluated this
+            // expression once
+            resultList = myQuery.ToList();
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
     }
 }

@@ -31,6 +31,8 @@ namespace LINQWrapper
             this.connectionProvider = connectionProvider;
             this.builder = builder;
             this.parameters = parameters;
+
+            this.cache = new Dictionary<Expression, object>();
         }
 
         public override string GetQueryText(Expression expression)
@@ -40,6 +42,11 @@ namespace LINQWrapper
 
         public override object Execute(Expression expression)
         {
+            if (cache.ContainsKey(expression))
+            {
+                return cache[expression];
+            }
+
             SQLBuilder clonedBuilder = (SQLBuilder) builder.Clone();
             QueryTranslator<T> translator = new QueryTranslator<T>(clonedBuilder);
 
@@ -49,12 +56,16 @@ namespace LINQWrapper
 
                 DBOperation operation = translator.Translate(expression, innerOperation);
 
-                return operation.Execute();
+                object result = operation.Execute();
+                cache[expression] = result;
+                return result;
             }
         }
 
         private Func<IDbConnection> connectionProvider;
         private SQLBuilder builder;
         private Dictionary<string, object> parameters;
+
+        private Dictionary<Expression, object> cache;
     }
 }
