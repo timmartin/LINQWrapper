@@ -69,10 +69,17 @@ namespace LINQWrapper
                 }
                 else if (m.Method.Name == "Count")
                 {
-                    builder.AddCountClause();
+                    if (!string.IsNullOrEmpty(CountOverrideSQL))
+                    {
+                        resultantOperation = new AggregateReadOperation<T>(new FixedSQLExecutionOperation<T>(CountOverrideSQL));
+                    }
+                    else
+                    {
+                        builder.AddCountClause();
 
-                    // We can only apply a Count to an SQL execution operation
-                    resultantOperation = new AggregateReadOperation<T>((SQLExecutionOperation<T>)resultantOperation);
+                        // We can only apply a Count to an SQL execution operation
+                        resultantOperation = new AggregateReadOperation<T>((SQLExecutionOperation<T>)resultantOperation);
+                    }
                 }
                 else if (m.Method.Name == "Cast")
                 {
@@ -214,6 +221,12 @@ namespace LINQWrapper
             }
 
             throw new NotSupportedException(string.Format("Member {0} is not recognised", m.Member.Name));
+        }
+
+        public string CountOverrideSQL
+        {
+            get;
+            set;
         }
 
         private SQLBuilder builder;

@@ -22,7 +22,7 @@ namespace LINQWrapper.DBOperations
 
         #region DBOperation<T> Members
 
-        public object Execute(LazyDBQueryProvider<T> provider)
+        public object Execute(LazyDBQueryProvider<T> provider, Dictionary<string, object> parameters)
         {
             IEnumerable<T> subResult = (IEnumerable<T>)provider.Execute(innerExpression);
 

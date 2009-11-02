@@ -15,9 +15,9 @@ namespace LINQWrapper.DBOperations
 
         #region DBOperation Members
 
-        public object Execute(LazyDBQueryProvider<FromType> provider)
+        public object Execute(LazyDBQueryProvider<FromType> provider, Dictionary<string, object> parameters)
         {
-            return ((IEnumerable<FromType>)innerOperation.Execute(provider)).Cast<ToType>();
+            return ((IEnumerable<FromType>)innerOperation.Execute(provider, parameters)).Cast<ToType>();
         }
 
         public void SetSkipValue(int skipValue)

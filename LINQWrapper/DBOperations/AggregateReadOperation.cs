@@ -21,15 +21,18 @@ namespace LINQWrapper.DBOperations
             this.innerOperation = innerOperation;
         }
 
-        public object Execute(LazyDBQueryProvider<T> provider)
+        public object Execute(LazyDBQueryProvider<T> provider, Dictionary<string, object> parameters)
         {
             /* At the moment, we assume we have a COUNT(*) query (with no GROUP BY) since that's all
              * we support */
 
-            using (IDataReader reader = innerOperation.GetReader())
+            using (IDbConnection connection = provider.GetConnection())
             {
-                reader.Read();
-                return int.Parse(reader["numrows"].ToString());
+                using (IDataReader reader = innerOperation.GetReader(connection, parameters))
+                {
+                    reader.Read();
+                    return int.Parse(reader["numrows"].ToString());
+                }
             }
         }
 

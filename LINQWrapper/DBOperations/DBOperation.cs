@@ -20,7 +20,7 @@ namespace LINQWrapper.DBOperations
         /// <param name="provider">The query provider is passed in, because in certain cases we
         /// want to do a recursive call to the provider to execute a sub-expression.</param>
         /// <returns></returns>
-        object Execute(LazyDBQueryProvider<T> provider);
+        object Execute(LazyDBQueryProvider<T> provider, Dictionary<string, object> parameters);
 
         void SetSkipValue(int skipValue);
 

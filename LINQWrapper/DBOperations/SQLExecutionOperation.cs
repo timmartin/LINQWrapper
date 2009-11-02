@@ -8,66 +8,18 @@ using LINQWrapper;
 
 namespace LINQWrapper.DBOperations
 {
-    public class SQLExecutionOperation<T> : DBOperation<T> where T : class, new()
+    public abstract class SQLExecutionOperation<T> : DBOperation<T> where T : class, new()
     {
-        public SQLExecutionOperation(Func<IDbConnection> connectionProvider, SQLBuilder sqlBuilder, Dictionary<string, object> parameters)
-        {
-            this.connectionProvider = connectionProvider;
-            this.sqlBuilder = sqlBuilder;
-            this.parameters = parameters;
-        }
+        internal abstract IDataReader GetReader(IDbConnection connection, Dictionary<string, object> parameters);
 
-        #region DBOperation Members
+        #region DBOperation<T> Members
 
-        public object Execute(LazyDBQueryProvider<T> provider)
-        {
-            // TODO: We need to be a bit careful about lifetime here. At the moment the
-            // ObjectBuilder is done with the reader as soon as the constructor finishes,
-            // but this might not always be the case. We need a more durable solution that
-            // doesn't bind the behaviour of this code to the of the ObjectBuilder
-            using (IDataReader reader = GetReader())
-            {
-                return new ObjectBuilder<T>(reader);
-            }
-        }
+        public abstract object Execute(LazyDBQueryProvider<T> provider, Dictionary<string, object> parameters);
+
+        public abstract void SetSkipValue(int skipValue);
+
+        public abstract void SetTakeValue(int takeValue);
 
         #endregion
-
-        internal IDataReader GetReader()
-        {
-            using (IDbConnection connection = connectionProvider())
-            {
-                StringBuilder stringBuilder = new StringBuilder();
-                sqlBuilder.BuildExpression(stringBuilder);
-
-                IDbCommand cmd = connection.CreateCommand();
-
-                cmd.CommandText = stringBuilder.ToString();
-
-                foreach (KeyValuePair<string, object> entry in parameters)
-                {
-                    IDbDataParameter newParam = cmd.CreateParameter();
-                    newParam.ParameterName = entry.Key;
-                    newParam.Value = entry.Value;
-                    cmd.Parameters.Add(newParam);
-                }
-
-                return cmd.ExecuteReader();
-            }
-        }
-
-        public void SetSkipValue(int skipValue)
-        {
-            sqlBuilder.SkipResults(skipValue);
-        }
-
-        public void SetTakeValue(int takeValue)
-        {
-            sqlBuilder.TakeResults(takeValue);
-        }
-
-        private Func<IDbConnection> connectionProvider;
-        private SQLBuilder sqlBuilder;
-        private Dictionary<string, object> parameters;
     }
 }

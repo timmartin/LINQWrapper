@@ -47,8 +47,12 @@ namespace LINQWrapper
                 return cache[expression];
             }
 
-            SQLBuilder clonedBuilder = (SQLBuilder) builder.Clone();
+            SQLBuilder clonedBuilder = (SQLBuilder)builder.Clone();
             QueryTranslator<T> translator = new QueryTranslator<T>(clonedBuilder);
+            if (!string.IsNullOrEmpty(optimisedCountExpression))
+            {
+                translator.CountOverrideSQL = optimisedCountExpression;
+            }
 
             /* When we create the inner operation, we provide it a connection provider rather than 
              * a connection. This is because the inner operation won't necessarily get executed - if
@@ -57,13 +61,34 @@ namespace LINQWrapper
              * ElementAt() expression: there's no point implementing it any way other than by 
              * executing the child expression as SQL and then doing the index into the list with LINQ
              * to entities */
-            SQLExecutionOperation<T> innerOperation = new SQLExecutionOperation<T>(connectionProvider, clonedBuilder, parameters);
+            SQLExecutionOperation<T> innerOperation = new SQLBuilderExecutionOperation<T>(connectionProvider, clonedBuilder);
 
             DBOperation<T> operation = translator.Translate(expression, innerOperation);
 
-            object result = operation.Execute(this);
+            object result = operation.Execute(this, parameters);
             cache[expression] = result;
             return result;
+        }
+
+        /// <summary>
+        /// If we have an optimised form of SQL that we can run in the special case of a Count() query, this
+        /// specifies what it is.
+        /// </summary>
+        /// <remarks>
+        /// We don't really want a method as specific as this. It would be nice if we could have a method for
+        /// specifying an optimisation on a per-expression basis, but generating arbitrary lambda expressions
+        /// that match the required lambda expressions we will encounter later during processing is beyond
+        /// me at the moment.
+        /// </remarks>
+        /// <param name="sql"></param>
+        public void SetOptimisedCountExpression(string sql)
+        {
+            optimisedCountExpression = sql;
+        }
+
+        internal IDbConnection GetConnection()
+        {
+            return connectionProvider();
         }
 
         private Func<IDbConnection> connectionProvider;
@@ -71,5 +96,6 @@ namespace LINQWrapper
         private Dictionary<string, object> parameters;
 
         private Dictionary<Expression, object> cache;
+        private string optimisedCountExpression;
     }
 }

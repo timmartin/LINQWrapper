@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 using NMock2;
@@ -763,6 +764,65 @@ namespace LINQWrapper.Tests
             Assert.AreEqual("Alice", myQuery.ElementAt(0).Name);
             Assert.AreEqual(1, myQuery.ElementAt(1).ID);
             Assert.AreEqual("Bob", myQuery.ElementAt(1).Name);
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
+
+        /// <summary>
+        /// We should be able to override the SQL for particular optimisation cases by 
+        /// providing alternative SQL
+        /// </summary>
+        [Test]
+        public void ExpressionOptimisationTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT stat FROM pre_calculated_count;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Exactly(1).On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["numrows"]
+                .Will(Return.Value("42"));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectTypeClause("employees", typeof(Employee));
+            sqlBuilder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Employee> query = new Query<Employee>(provider);
+
+            Expression<Func<int>> countExpr = () => query.Count();
+
+            Assert.NotNull(countExpr);
+
+            provider.SetOptimisedCountExpression("SELECT stat FROM pre_calculated_count;");
+
+            int count = query.Count();
+
+            Assert.AreEqual(42, count);
 
             mocks.VerifyAllExpectationsHaveBeenMet();
         }

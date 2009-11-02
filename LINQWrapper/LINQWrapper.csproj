@@ -51,6 +51,8 @@
     <Compile Include="DBOperations\CastOperation.cs" />
     <Compile Include="DBOperations\DBOperation.cs" />
     <Compile Include="DBOperations\ElementAtOperation.cs" />
+    <Compile Include="DBOperations\FixedSQLExecutionOperation.cs" />
+    <Compile Include="DBOperations\SQLBuilderExecutionOperation.cs" />
     <Compile Include="DBOperations\SQLExecutionOperation.cs" />
     <Compile Include="Exceptions\IncompleteQueryException.cs" />
     <Compile Include="JoinDetails.cs" />
