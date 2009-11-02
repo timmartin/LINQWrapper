@@ -23,7 +23,7 @@ namespace LINQWrapper
             this.builder = builder;
         }
 
-        internal DBOperation Translate(Expression expression, DBOperation operationToDecorate)
+        internal DBOperation<T> Translate(Expression expression, DBOperation<T> operationToDecorate)
         {
             /* We start by setting the operation to be a simple SELECT on the DB. We then decorate this 
              * expression with extra wrappers if we find out that we have to during processing. Structurally,
@@ -85,7 +85,7 @@ namespace LINQWrapper
 
                     Type castOperationType = typeof(CastOperation<,>).MakeGenericType(new Type[] { fromType, toType });
 
-                    resultantOperation = (DBOperation) Activator.CreateInstance(castOperationType, new object[] { resultantOperation });
+                    resultantOperation = (DBOperation<T>) Activator.CreateInstance(castOperationType, new object[] { resultantOperation });
                 }
                 else if (m.Method.Name == "Skip")
                 {
@@ -122,6 +122,27 @@ namespace LINQWrapper
                     }
 
                     resultantOperation.SetTakeValue((int)takeExpression.Value);
+                }
+                else if (m.Method.Name == "ElementAt")
+                {
+                    /* We don't attempt to parse the sub-expression, we pass it into the operation,
+                     * which will lazily evaluate it by passing the sub-expression back to the
+                     * provider when the time comes. Since the provider caches the result, this is
+                     * actually more efficient than producing two different (but related) expressions */
+
+                    if (!(m.Arguments[1] is ConstantExpression))
+                    {
+                        throw new Exception("Can only apply ElementAt() to constant expressions");
+                    }
+
+                    ConstantExpression elementAtExpression = (ConstantExpression)m.Arguments[1];
+
+                    if (elementAtExpression.Type != typeof(int))
+                    {
+                        throw new Exception("Can only apply ElementAt() to arguments of integer type");
+                    }
+
+                    resultantOperation = new ElementAtOperation<T>(m.Arguments[0], (int)elementAtExpression.Value);
                 }
             }
 
@@ -201,6 +222,6 @@ namespace LINQWrapper
 
         private Type currentlyProcessingType;
 
-        private DBOperation resultantOperation;
+        private DBOperation<T> resultantOperation;
     }
 }

@@ -50,16 +50,20 @@ namespace LINQWrapper
             SQLBuilder clonedBuilder = (SQLBuilder) builder.Clone();
             QueryTranslator<T> translator = new QueryTranslator<T>(clonedBuilder);
 
-            using (IDbConnection connection = connectionProvider())
-            {
-                SQLExecutionOperation<T> innerOperation = new SQLExecutionOperation<T>(connection, clonedBuilder, parameters);
+            /* When we create the inner operation, we provide it a connection provider rather than 
+             * a connection. This is because the inner operation won't necessarily get executed - if
+             * our expression can actually be remapped onto a simpler expression that we already have
+             * in the cache, there's no point running a new query. This happens in particular with the
+             * ElementAt() expression: there's no point implementing it any way other than by 
+             * executing the child expression as SQL and then doing the index into the list with LINQ
+             * to entities */
+            SQLExecutionOperation<T> innerOperation = new SQLExecutionOperation<T>(connectionProvider, clonedBuilder, parameters);
 
-                DBOperation operation = translator.Translate(expression, innerOperation);
+            DBOperation<T> operation = translator.Translate(expression, innerOperation);
 
-                object result = operation.Execute();
-                cache[expression] = result;
-                return result;
-            }
+            object result = operation.Execute(this);
+            cache[expression] = result;
+            return result;
         }
 
         private Func<IDbConnection> connectionProvider;

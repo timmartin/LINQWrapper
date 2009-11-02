@@ -6,7 +6,7 @@ using System.Text;
 
 namespace LINQWrapper.DBOperations
 {
-    public class CastOperation<FromType, ToType> : DBOperation where FromType : class, new()
+    public class CastOperation<FromType, ToType> : DBOperation<FromType> where FromType : class, new()
     {
         public CastOperation(SQLExecutionOperation<FromType> innerOperation)
         {
@@ -15,9 +15,9 @@ namespace LINQWrapper.DBOperations
 
         #region DBOperation Members
 
-        public object Execute()
+        public object Execute(LazyDBQueryProvider<FromType> provider)
         {
-            return ((IEnumerable<FromType>)innerOperation.Execute()).Cast<ToType>();
+            return ((IEnumerable<FromType>)innerOperation.Execute(provider)).Cast<ToType>();
         }
 
         public void SetSkipValue(int skipValue)

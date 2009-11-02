@@ -8,18 +8,18 @@ using LINQWrapper;
 
 namespace LINQWrapper.DBOperations
 {
-    public class SQLExecutionOperation<T> : DBOperation where T : class, new()
+    public class SQLExecutionOperation<T> : DBOperation<T> where T : class, new()
     {
-        public SQLExecutionOperation(IDbConnection conn, SQLBuilder sqlBuilder, Dictionary<string, object> parameters)
+        public SQLExecutionOperation(Func<IDbConnection> connectionProvider, SQLBuilder sqlBuilder, Dictionary<string, object> parameters)
         {
-            this.connection = conn;
+            this.connectionProvider = connectionProvider;
             this.sqlBuilder = sqlBuilder;
             this.parameters = parameters;
         }
 
         #region DBOperation Members
 
-        public object Execute()
+        public object Execute(LazyDBQueryProvider<T> provider)
         {
             // TODO: We need to be a bit careful about lifetime here. At the moment the
             // ObjectBuilder is done with the reader as soon as the constructor finishes,
@@ -35,22 +35,25 @@ namespace LINQWrapper.DBOperations
 
         internal IDataReader GetReader()
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            sqlBuilder.BuildExpression(stringBuilder);
-
-            IDbCommand cmd = connection.CreateCommand();
-
-            cmd.CommandText = stringBuilder.ToString();
-
-            foreach (KeyValuePair<string, object> entry in parameters)
+            using (IDbConnection connection = connectionProvider())
             {
-                IDbDataParameter newParam = cmd.CreateParameter();
-                newParam.ParameterName = entry.Key;
-                newParam.Value = entry.Value;
-                cmd.Parameters.Add(newParam);
-            }
+                StringBuilder stringBuilder = new StringBuilder();
+                sqlBuilder.BuildExpression(stringBuilder);
 
-            return cmd.ExecuteReader();
+                IDbCommand cmd = connection.CreateCommand();
+
+                cmd.CommandText = stringBuilder.ToString();
+
+                foreach (KeyValuePair<string, object> entry in parameters)
+                {
+                    IDbDataParameter newParam = cmd.CreateParameter();
+                    newParam.ParameterName = entry.Key;
+                    newParam.Value = entry.Value;
+                    cmd.Parameters.Add(newParam);
+                }
+
+                return cmd.ExecuteReader();
+            }
         }
 
         public void SetSkipValue(int skipValue)
@@ -63,7 +66,7 @@ namespace LINQWrapper.DBOperations
             sqlBuilder.TakeResults(takeValue);
         }
 
-        private IDbConnection connection;
+        private Func<IDbConnection> connectionProvider;
         private SQLBuilder sqlBuilder;
         private Dictionary<string, object> parameters;
     }

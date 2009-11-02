@@ -50,6 +50,7 @@
     <Compile Include="DBOperations\AggregateReadOperation.cs" />
     <Compile Include="DBOperations\CastOperation.cs" />
     <Compile Include="DBOperations\DBOperation.cs" />
+    <Compile Include="DBOperations\ElementAtOperation.cs" />
     <Compile Include="DBOperations\SQLExecutionOperation.cs" />
     <Compile Include="Exceptions\IncompleteQueryException.cs" />
     <Compile Include="JoinDetails.cs" />

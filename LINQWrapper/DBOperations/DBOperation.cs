@@ -12,9 +12,15 @@ namespace LINQWrapper.DBOperations
     /// All the necessary work (calling the DB, extracting data, casting etc.) will be taken care
     /// of within this class.
     /// </summary>
-    public interface DBOperation
+    public interface DBOperation<T> where T : class, new()
     {
-        object Execute();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="provider">The query provider is passed in, because in certain cases we
+        /// want to do a recursive call to the provider to execute a sub-expression.</param>
+        /// <returns></returns>
+        object Execute(LazyDBQueryProvider<T> provider);
 
         void SetSkipValue(int skipValue);
 

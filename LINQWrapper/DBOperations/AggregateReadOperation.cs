@@ -14,14 +14,14 @@ namespace LINQWrapper.DBOperations
     /// Currently this only supports COUNT queries
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class AggregateReadOperation<T> : DBOperation where T : class, new()
+    public class AggregateReadOperation<T> : DBOperation<T> where T : class, new()
     {
         public AggregateReadOperation(SQLExecutionOperation<T> innerOperation)
         {
             this.innerOperation = innerOperation;
         }
 
-        public object Execute()
+        public object Execute(LazyDBQueryProvider<T> provider)
         {
             /* At the moment, we assume we have a COUNT(*) query (with no GROUP BY) since that's all
              * we support */

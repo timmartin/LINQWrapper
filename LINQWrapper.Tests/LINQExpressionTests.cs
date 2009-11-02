@@ -692,5 +692,79 @@ namespace LINQWrapper.Tests
 
             mocks.VerifyAllExpectationsHaveBeenMet();
         }
+
+        /// <summary>
+        /// Check that we can fetch results from a query with the ElementAt() operator
+        /// </summary>
+        [Test]
+        public void ElementAtTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT id FROM employees;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Exactly(2).On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_name"]
+                .Will(Return.Value("Alice"));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_id"]
+                .Will(Return.Value("1"));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_name"]
+                .Will(Return.Value("Bob"));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder builder = new MySQLBuilder();
+
+            // NB: The select clause we're setting here isn't sufficient to instantiate the objects,
+            // which have two fields. This doesn't matter here since we are using mock objects
+            // anyway, and in practice it will be up to the author of the SQL statements to get details
+            // like this right.
+            builder.AddSelectClause("id");
+            builder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, builder, new Dictionary<string, object>());
+
+            Query<Employee> myQuery = new Query<Employee>(provider);
+
+            Assert.AreEqual(0, myQuery.ElementAt(0).ID);
+            Assert.AreEqual("Alice", myQuery.ElementAt(0).Name);
+            Assert.AreEqual(1, myQuery.ElementAt(1).ID);
+            Assert.AreEqual("Bob", myQuery.ElementAt(1).Name);
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
     }
 }
