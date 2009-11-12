@@ -4,6 +4,8 @@ using System.Data;
 using System.Linq;
 using System.Text;
 
+using LINQWrapper.Exceptions;
+
 namespace LINQWrapper.DBOperations
 {
     /// <summary>
@@ -30,7 +32,11 @@ namespace LINQWrapper.DBOperations
             {
                 using (IDataReader reader = innerOperation.GetReader(connection, parameters))
                 {
-                    reader.Read();
+                    if (!reader.Read())
+                    {
+                        throw new BadResultSetException("Expected to have at least one line in result set for Count() query");
+                    }
+
                     return int.Parse(reader["numrows"].ToString());
                 }
             }

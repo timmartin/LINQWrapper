@@ -116,14 +116,24 @@ namespace LINQWrapper
                 }
                 else if (m.Method.Name == "Count")
                 {
+                    builder.AddCountClause(typeof(T));
+
                     if (!string.IsNullOrEmpty(CountOverrideSQL))
                     {
-                        resultantOperation = new AggregateReadOperation<T>(new FixedSQLExecutionOperation<T>(CountOverrideSQL));
+                        /* We still need to have the default SQL, since we need to have a failover if the
+                         * optimised SQL doesn't work for some reason. */
+
+                        DBOperation<T> optimisedOperation = new AggregateReadOperation<T>(new FixedSQLExecutionOperation<T>(CountOverrideSQL));
+                        DBOperation<T> defaultOperation = new AggregateReadOperation<T>((SQLExecutionOperation<T>)resultantOperation);
+
+                        FailoverOperation<T> combinedOperation = new FailoverOperation<T>();
+                        combinedOperation.AddOperation(optimisedOperation);
+                        combinedOperation.AddOperation(defaultOperation);
+
+                        resultantOperation = combinedOperation;
                     }
                     else
                     {
-                        builder.AddCountClause(typeof(T));
-
                         // We can only apply a Count to an SQL execution operation
                         resultantOperation = new AggregateReadOperation<T>((SQLExecutionOperation<T>)resultantOperation);
                     }

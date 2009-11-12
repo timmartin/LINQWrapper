@@ -11,6 +11,7 @@ using NUnit.Framework;
 
 using IQToolkit;
 using LINQWrapper;
+using LINQWrapper.Exceptions;
 using LINQWrapper.Tests.TestTypes;
 
 namespace LINQWrapper.Tests
@@ -1182,16 +1183,105 @@ namespace LINQWrapper.Tests
             LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
             Query<Employee> query = new Query<Employee>(provider);
 
-            Expression<Func<int>> countExpr = () => query.Count();
-
-            Assert.NotNull(countExpr);
-
             provider.SetOptimisedCountExpression("SELECT stat FROM pre_calculated_count;");
 
             int count = query.Count();
 
             Assert.AreEqual(42, count);
 
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
+
+        /// <summary>
+        /// Originally, it was possible for the optimised Count() expression to fail, and there was no fallback
+        /// to the non-optimised expression. This tests that we recover from such failures correctly.
+        /// </summary>
+        [Test]
+        public void OptimisedCountFailureTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+
+            /* We will first try to execute the optimised form of the command, which will fail to return
+             * any results. This should lead to the default command being executed, which will return
+             * a correct result set */
+            IDbCommand optimisedMockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader optimisedReader = mocks.NewMock<IDataReader>();
+
+            IDbCommand defaultMockCommand = mocks.NewMock<IDbCommand>();
+
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(optimisedMockCommand));
+
+            Expect.Once.On(optimisedMockCommand)
+                .SetProperty("CommandText").To("SELECT stat FROM pre_calculated_count;");
+
+            Expect.Once.On(optimisedMockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(optimisedReader));
+
+            Expect.Once.On(optimisedReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(optimisedReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            /* NB: We dispose of the mock connection, then we start using it again. In reality, we've called
+             * the provider function again, which returns the same value. For more realism, we could have two
+             * mocks and have a provider function that successively returns one, then the other */
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(defaultMockCommand));
+
+            Expect.Once.On(defaultMockCommand)
+                .SetProperty("CommandText").To("SELECT COUNT(*) AS numrows FROM employees;");
+
+            Expect.Once.On(defaultMockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["numrows"]
+                .Will(Return.Value("42"));
+
+            /* You might expect us to call Read() on the reader until it returns false - but actually, in the
+             * case of an aggregate function we don't bother doing this. Since we currently don't support
+             * GROUP BY, there's never going to be more than one row in an aggregate result set */
+            /*Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));*/
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+            sqlBuilder.AddSelectTypeClause("employees", typeof(Employee));
+            sqlBuilder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Employee> query = new Query<Employee>(provider);
+
+            provider.SetOptimisedCountExpression("SELECT stat FROM pre_calculated_count;");
+
+            int count = query.Count();
+
+            Assert.AreEqual(42, count);
             mocks.VerifyAllExpectationsHaveBeenMet();
         }
     }
