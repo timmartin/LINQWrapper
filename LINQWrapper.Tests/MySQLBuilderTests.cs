@@ -152,7 +152,7 @@ namespace LINQWrapper.Tests
             sqlBuilder.AddSelectClause("name");
             sqlBuilder.AddFromClause("employees");
 
-            sqlBuilder.AddCountClause();
+            sqlBuilder.AddCountClause(typeof(Employee));
 
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -210,7 +210,7 @@ namespace LINQWrapper.Tests
 
             SQLBuilder clonedBuilder = (SQLBuilder) sqlBuilder.Clone();
 
-            sqlBuilder.AddCountClause();
+            sqlBuilder.AddCountClause(typeof(Employee));
 
             StringBuilder stringBuilder = new StringBuilder();
             sqlBuilder.BuildExpression(stringBuilder);

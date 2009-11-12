@@ -122,7 +122,7 @@ namespace LINQWrapper
                     }
                     else
                     {
-                        builder.AddCountClause();
+                        builder.AddCountClause(typeof(T));
 
                         // We can only apply a Count to an SQL execution operation
                         resultantOperation = new AggregateReadOperation<T>((SQLExecutionOperation<T>)resultantOperation);

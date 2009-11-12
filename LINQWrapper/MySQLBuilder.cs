@@ -130,8 +130,14 @@ namespace LINQWrapper
             orderExpressions.Add(new OrderExpression() { Expression = orderBy, Direction = direction });
         }
 
-        public void AddCountClause()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="countExpressionType">The type that is being selected. This is provided so that
+        /// we can correctly do COUNT(DISTINCT ...)</param>
+        public void AddCountClause(Type countExpressionType)
         {
+            this.countExpressionType = countExpressionType;
             countQuery = true;
         }
 
@@ -164,7 +170,7 @@ namespace LINQWrapper
 
             if (countQuery)
             {
-                builder.Append("COUNT(*) AS numrows");
+                BuildCountClause(builder);
             }
             else
             {
@@ -182,6 +188,31 @@ namespace LINQWrapper
                     builder.Append(expression);
                     first = false;
                 }
+            }
+        }
+
+        private void BuildCountClause(StringBuilder builder)
+        {
+            var primaryKeyProperties = from property in countExpressionType.GetProperties()
+                                       where property.GetCustomAttributes(typeof(PrimaryKeyAttribute), false).Any()
+                                       select property;
+
+            if (primaryKeyProperties.Count() > 0)
+            {
+                builder.Append("COUNT(DISTINCT ");
+
+                var fieldMappingAttributes = from property in primaryKeyProperties
+                                             select (FieldMappingAttribute)property.GetCustomAttributes(typeof(FieldMappingAttribute), false).Single();
+
+                var fieldNames = from attr in fieldMappingAttributes
+                                 select attr.UniqueFieldAlias;
+
+                builder.Append(string.Join(", ", fieldNames.ToArray()));
+                builder.Append(") AS numrows");
+            }
+            else
+            {
+                builder.Append("COUNT(*) AS numrows");
             }
         }
 
@@ -284,6 +315,8 @@ namespace LINQWrapper
         /// the rows themselves.
         /// </summary>
         private bool countQuery;
+
+        private Type countExpressionType;
 
         #endregion
     }

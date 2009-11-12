@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="DBMapping\FieldMappingAttribute.cs" />
     <Compile Include="DBMapping\OrderByModifierAttribute.cs" />
+    <Compile Include="DBMapping\PrimaryKeyAttribute.cs" />
     <Compile Include="DBMapping\RecursiveFetchAttribute.cs" />
     <Compile Include="DBOperations\AggregateReadOperation.cs" />
     <Compile Include="DBOperations\CastOperation.cs" />

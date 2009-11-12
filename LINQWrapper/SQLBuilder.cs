@@ -76,7 +76,7 @@ namespace LINQWrapper
         /// Causes the statement to return a count of the results, rather than a set of the results
         /// themselves
         /// </summary>
-        void AddCountClause();
+        void AddCountClause(Type countType);
 
         /// <summary>
         /// Set the number of results to skip over in the ordered result set
