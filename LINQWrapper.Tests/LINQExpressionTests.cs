@@ -175,6 +175,59 @@ namespace LINQWrapper.Tests
         }
 
         /// <summary>
+        /// Check that we can do OrderByDescending()
+        /// </summary>
+        [Test]
+        public void OrderByDescendingTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT employees.id AS employee_id, employees.name AS employee_name FROM employees ORDER BY employee_name DESC;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            // We return an empty result set from the mock reader. This doesn't matter much, since we
+            // verify that the ORDER BY is set in the SQL query executed.
+
+            SQLBuilder builder = new MySQLBuilder();
+
+            builder.AddSelectTypeClause("employees", typeof(Employee));
+            builder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, builder, new Dictionary<string, object>());
+            Query<Employee> myQuery = new Query<Employee>(provider);
+
+            var orderedResults = from x in myQuery
+                                 orderby x.Name descending
+                                 select x;
+
+            List<Employee> resultsList = orderedResults.ToList();
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
+
+        /// <summary>
         /// Check that we can do an orderby foo.Bar.Baz with a member of a member
         /// </summary>
         [Test]
@@ -552,6 +605,66 @@ namespace LINQWrapper.Tests
             mocks.VerifyAllExpectationsHaveBeenMet();
         }
 
+        [Test]
+        public void MultipleOrderByDescendingTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT employees.id AS employee_id, employees.name AS employee_name FROM employees ORDER BY employee_name DESC, employee_id;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_name"]
+                .Will(Return.Value("Alice"));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectTypeClause("employees", typeof(Employee));
+            sqlBuilder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Employee> query = new Query<Employee>(provider);
+
+            IQueryable<Employee> employees = from employee in query
+                                             orderby employee.Name descending,
+                                                 employee.ID
+                                             select employee;
+
+            List<Employee> peopleList = employees.ToList();
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
+
         /// <summary>
         /// If the attribute being used in an OrderBy() expression has a modifier attribute,
         /// we should use the modified form in the SQL
@@ -608,6 +721,69 @@ namespace LINQWrapper.Tests
 
             IQueryable<Supplier> suppliers = from supplier in query
                                              orderby supplier.Name
+                                             select supplier;
+
+            List<Supplier> suppliersList = suppliers.ToList();
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
+
+        /// <summary>
+        /// If the attribute being used in an OrderBy() expression has a modifier attribute,
+        /// we should use the modified form in the SQL
+        /// </summary>
+        [Test]
+        public void OrderByDescendingWithModifierTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT suppliers.id AS supplier_id, suppliers.name AS supplier_name FROM suppliers ORDER BY ModifierFunction(supplier_name) DESC;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["supplier_id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["supplier_name"]
+                .Will(Return.Value("Alice & Co."));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectTypeClause("suppliers", typeof(Supplier));
+            sqlBuilder.AddFromClause("suppliers");
+
+            LazyDBQueryProvider<Supplier> provider = new LazyDBQueryProvider<Supplier>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Supplier> query = new Query<Supplier>(provider);
+
+            IQueryable<Supplier> suppliers = from supplier in query
+                                             orderby supplier.Name descending
                                              select supplier;
 
             List<Supplier> suppliersList = suppliers.ToList();

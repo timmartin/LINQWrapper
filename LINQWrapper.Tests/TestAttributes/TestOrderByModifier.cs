@@ -11,9 +11,15 @@ namespace LINQWrapper.Tests.TestAttributes
     {
         #region OrderByModifierAttribute Members
 
-        public override string GetOrderByExpression(string fieldName)
+        public override string GetOrderByExpression(string fieldName, SortDirection direction)
         {
-            return "ModifierFunction(" + fieldName + ")";
+            string directionModifier = "";
+            if (direction == SortDirection.Descending)
+            {
+                directionModifier = " DESC";
+            }
+
+            return "ModifierFunction(" + fieldName + ")" + directionModifier;
         }
 
         #endregion

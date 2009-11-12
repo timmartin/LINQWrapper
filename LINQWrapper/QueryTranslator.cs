@@ -21,6 +21,7 @@ namespace LINQWrapper
         internal QueryTranslator(SQLBuilder builder)
         {
             this.builder = builder;
+            currentSortDirection = SortDirection.Ascending;
         }
 
         internal DBOperation<T> Translate(Expression expression, DBOperation<T> operationToDecorate)
@@ -58,6 +59,7 @@ namespace LINQWrapper
                     LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
 
                     orderFieldExpression = null;
+                    currentSortDirection = SortDirection.Ascending;
                     this.Visit(lambda.Body);
                     // Visiting the lambda body should cause us to eventually hit a member access,
                     // at which point the orderFieldName will be populated.
@@ -67,6 +69,21 @@ namespace LINQWrapper
                         builder.AddOrderByClause(orderFieldExpression, SortDirection.Ascending);
                     }
                 }
+                else if (m.Method.Name == "OrderByDescending")
+                {
+                    this.Visit(m.Arguments[0]);
+
+                    LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+
+                    orderFieldExpression = null;
+                    currentSortDirection = SortDirection.Descending;
+                    this.Visit(lambda.Body);
+
+                    if (orderFieldExpression != null)
+                    {
+                        builder.AddOrderByClause(orderFieldExpression, SortDirection.Descending);
+                    }
+                }
                 else if (m.Method.Name == "ThenBy")
                 {
                     this.Visit(m.Arguments[0]);
@@ -74,11 +91,27 @@ namespace LINQWrapper
                     LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
 
                     orderFieldExpression = null;
+                    currentSortDirection = SortDirection.Ascending;
                     this.Visit(lambda.Body);
 
                     if (orderFieldExpression != null)
                     {
                         builder.AddOrderByClause(orderFieldExpression, SortDirection.Ascending);
+                    }
+                }
+                else if (m.Method.Name == "ThenByDescending")
+                {
+                    this.Visit(m.Arguments[0]);
+
+                    LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+
+                    orderFieldExpression = null;
+                    currentSortDirection = SortDirection.Descending;
+                    this.Visit(lambda.Body);
+
+                    if (orderFieldExpression != null)
+                    {
+                        builder.AddOrderByClause(orderFieldExpression, SortDirection.Descending);
                     }
                 }
                 else if (m.Method.Name == "Count")
@@ -233,8 +266,15 @@ namespace LINQWrapper
 
                     if (modifierAttributes.Any())
                     {
+                        /* Hack: If we have a modifier, then we want the DESC tag to be added by the modifier (since
+                         * the SQL builder couldn't guarantee to get it in the right place in the modified content)
+                         * and we rely on the fact that if we set the ordering to ascending, no DESC tag will be
+                         * printed. */
+
+                        currentSortDirection = SortDirection.Ascending;
+
                         OrderByModifierAttribute modifier = (OrderByModifierAttribute)modifierAttributes.Single();
-                        orderFieldExpression = modifier.GetOrderByExpression(fieldMapAttr.UniqueFieldAlias);
+                        orderFieldExpression = modifier.GetOrderByExpression(fieldMapAttr.UniqueFieldAlias, currentSortDirection);
                     }
                     else
                     {
@@ -257,6 +297,15 @@ namespace LINQWrapper
         private SQLBuilder builder;
 
         private string orderFieldExpression;
+
+        /// <summary>
+        /// The sort direction for the ORDER BY expression that is currently being evaluated
+        /// </summary>
+        /// <remarks>
+        /// This is a horrible way to implement this. We ought to separate out the state involved in 
+        /// parsing an ORDER BY expression from the general expression parser
+        /// </remarks>
+        private SortDirection currentSortDirection;
 
         private Type currentlyProcessingType;
 

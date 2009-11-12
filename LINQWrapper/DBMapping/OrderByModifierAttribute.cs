@@ -20,8 +20,16 @@ namespace LINQWrapper.DBMapping
         /// This should return an expression, based on the field name, that will be
         /// included in the SQL ORDER BY expression in place of the field itself.
         /// </summary>
-        /// <param name="fieldName"></param>
+        /// <remarks>
+        /// This method must build in the sort direction itself, since it isn't possible in general
+        /// for the abstraction layer to decide where to put the 'DESC' keyword if it doesn't know
+        /// how the expression has been transformed
+        /// </remarks>
+        /// <param name="fieldName">The name of the field to sort by, as it would be included
+        /// in the ORDER BY column if the modifier wasn't there. This will be the unique field
+        /// alias of the field being selected</param>
+        /// <param name="direction">The direction in which to sort</param>
         /// <returns></returns>
-        abstract public string GetOrderByExpression(string fieldName);
+        abstract public string GetOrderByExpression(string fieldName, SortDirection direction);
     }
 }
