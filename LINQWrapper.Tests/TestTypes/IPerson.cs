@@ -11,5 +11,10 @@ namespace LINQWrapper.Tests.TestTypes
     /// </summary>
     public interface IPerson
     {
+        int ID
+        { get; }
+
+        string Name
+        { get; }
     }
 }

@@ -191,7 +191,7 @@ namespace LINQWrapper.Tests
                 .Will(Return.Value(mockCommand));
 
             Expect.Once.On(mockCommand)
-                .SetProperty("CommandText").To("SELECT DISTINCT products.id AS product_id, products.name AS product_name, suppliers.id AS supplier_id, suppliers.name AS supplier_name FROM products JOIN suppliers ON products.main_supplier = suppliers.id ORDER BY supplier_name;");
+                .SetProperty("CommandText").To("SELECT DISTINCT products.id AS product_id, products.name AS product_name, suppliers.id AS supplier_id, suppliers.name AS supplier_name FROM products JOIN suppliers ON products.main_supplier = suppliers.id ORDER BY ModifierFunction(supplier_name);");
 
             Expect.Once.On(mockCommand)
                 .Method("ExecuteReader")
@@ -421,6 +421,198 @@ namespace LINQWrapper.Tests
 
             Assert.AreEqual(1, peopleList.Count);
             Assert.IsInstanceOf<IPerson>(peopleList[0]); // This can't actually fail, but it's nice to record our intention
+        }
+
+        /// <summary>
+        /// Check that we can combine Cast() and OrderBy() expressions
+        /// </summary>
+        [Test]
+        public void OrderByCastTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT id AS employee_id, name AS employee_name FROM employees ORDER BY employee_name;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_name"]
+                .Will(Return.Value("Alice"));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectClause("id AS employee_id");
+            sqlBuilder.AddSelectClause("name AS employee_name");
+            sqlBuilder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Employee> query = new Query<Employee>(provider);
+
+            IQueryable<IPerson> people = query.Cast<IPerson>();
+
+            people = from person in people
+                     orderby person.Name
+                     select person;
+
+            List<IPerson> peopleList = people.ToList();
+
+            Assert.AreEqual(1, peopleList.Count);
+            Assert.IsInstanceOf<IPerson>(peopleList[0]);
+        }
+
+        /// <summary>
+        /// Check that we can order by multiple fields at the same time
+        /// </summary>
+        [Test]
+        public void MultipleOrderByTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT employees.id AS employee_id, employees.name AS employee_name FROM employees ORDER BY employee_name, employee_id;");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["employee_name"]
+                .Will(Return.Value("Alice"));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectTypeClause("employees", typeof(Employee));
+            sqlBuilder.AddFromClause("employees");
+
+            LazyDBQueryProvider<Employee> provider = new LazyDBQueryProvider<Employee>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Employee> query = new Query<Employee>(provider);
+
+            IQueryable<Employee> employees = from employee in query
+                                             orderby employee.Name,
+                                                 employee.ID
+                                             select employee;
+
+            List<Employee> peopleList = employees.ToList();
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
+        }
+
+        /// <summary>
+        /// If the attribute being used in an OrderBy() expression has a modifier attribute,
+        /// we should use the modified form in the SQL
+        /// </summary>
+        [Test]
+        public void OrderByWithModifierTest()
+        {
+            Mockery mocks = new Mockery();
+
+            IDbConnection mockConnection = mocks.NewMock<IDbConnection>();
+            IDbCommand mockCommand = mocks.NewMock<IDbCommand>();
+            IDataReader mockReader = mocks.NewMock<IDataReader>();
+
+            Expect.Once.On(mockConnection)
+                .Method("CreateCommand")
+                .Will(Return.Value(mockCommand));
+
+            Expect.Once.On(mockCommand)
+                .SetProperty("CommandText").To("SELECT DISTINCT suppliers.id AS supplier_id, suppliers.name AS supplier_name FROM suppliers ORDER BY ModifierFunction(supplier_name);");
+
+            Expect.Once.On(mockCommand)
+                .Method("ExecuteReader")
+                .Will(Return.Value(mockReader));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(true));
+
+            Expect.Once.On(mockReader)
+                .Get["supplier_id"]
+                .Will(Return.Value("0"));
+
+            Expect.Once.On(mockReader)
+                .Get["supplier_name"]
+                .Will(Return.Value("Alice & Co."));
+
+            Expect.Once.On(mockReader)
+                .Method("Read")
+                .Will(Return.Value(false));
+
+            Expect.Once.On(mockReader)
+                .Method("Dispose");
+
+            Expect.Once.On(mockConnection)
+                .Method("Dispose");
+
+            SQLBuilder sqlBuilder = new MySQLBuilder();
+
+            sqlBuilder.AddSelectTypeClause("suppliers", typeof(Supplier));
+            sqlBuilder.AddFromClause("suppliers");
+
+            LazyDBQueryProvider<Supplier> provider = new LazyDBQueryProvider<Supplier>(() => mockConnection, sqlBuilder, new Dictionary<string, object>());
+            Query<Supplier> query = new Query<Supplier>(provider);
+
+            IQueryable<Supplier> suppliers = from supplier in query
+                                             orderby supplier.Name
+                                             select supplier;
+
+            List<Supplier> suppliersList = suppliers.ToList();
+
+            mocks.VerifyAllExpectationsHaveBeenMet();
         }
 
         /// <summary>

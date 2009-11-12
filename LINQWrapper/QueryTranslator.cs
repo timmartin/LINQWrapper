@@ -57,14 +57,28 @@ namespace LINQWrapper
 
                     LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
 
-                    orderFieldName = null;
+                    orderFieldExpression = null;
                     this.Visit(lambda.Body);
                     // Visiting the lambda body should cause us to eventually hit a member access,
                     // at which point the orderFieldName will be populated.
 
-                    if (orderFieldName != null)
+                    if (orderFieldExpression != null)
                     {
-                        builder.AddOrderByClause(orderFieldName, SortDirection.Ascending);
+                        builder.AddOrderByClause(orderFieldExpression, SortDirection.Ascending);
+                    }
+                }
+                else if (m.Method.Name == "ThenBy")
+                {
+                    this.Visit(m.Arguments[0]);
+
+                    LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+
+                    orderFieldExpression = null;
+                    this.Visit(lambda.Body);
+
+                    if (orderFieldExpression != null)
+                    {
+                        builder.AddOrderByClause(orderFieldExpression, SortDirection.Ascending);
                     }
                 }
                 else if (m.Method.Name == "Count")
@@ -92,7 +106,7 @@ namespace LINQWrapper
 
                     Type castOperationType = typeof(CastOperation<,>).MakeGenericType(new Type[] { fromType, toType });
 
-                    resultantOperation = (DBOperation<T>) Activator.CreateInstance(castOperationType, new object[] { resultantOperation });
+                    resultantOperation = (DBOperation<T>)Activator.CreateInstance(castOperationType, new object[] { resultantOperation });
                 }
                 else if (m.Method.Name == "Skip")
                 {
@@ -110,7 +124,7 @@ namespace LINQWrapper
                         throw new Exception("Can only apply Skip to arguments of integer type");
                     }
 
-                    resultantOperation.SetSkipValue((int) skipExpression.Value);
+                    resultantOperation.SetSkipValue((int)skipExpression.Value);
                 }
                 else if (m.Method.Name == "Take")
                 {
@@ -214,7 +228,18 @@ namespace LINQWrapper
                 {
                     FieldMappingAttribute fieldMapAttr = fieldAttributes.Single();
 
-                    orderFieldName = fieldMapAttr.UniqueFieldAlias;
+                    var modifierAttributes = from attr in targetProperty.GetCustomAttributes(typeof(OrderByModifierAttribute), false)
+                                             select attr;
+
+                    if (modifierAttributes.Any())
+                    {
+                        OrderByModifierAttribute modifier = (OrderByModifierAttribute)modifierAttributes.Single();
+                        orderFieldExpression = modifier.GetOrderByExpression(fieldMapAttr.UniqueFieldAlias);
+                    }
+                    else
+                    {
+                        orderFieldExpression = fieldMapAttr.UniqueFieldAlias;
+                    }
                 }
 
                 return m;
@@ -231,7 +256,7 @@ namespace LINQWrapper
 
         private SQLBuilder builder;
 
-        private string orderFieldName;
+        private string orderFieldExpression;
 
         private Type currentlyProcessingType;
 

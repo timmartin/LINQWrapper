@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using LINQWrapper.DBMapping;
+using LINQWrapper.Tests.TestAttributes;
 
 namespace LINQWrapper.Tests.TestTypes
 {
@@ -14,6 +15,7 @@ namespace LINQWrapper.Tests.TestTypes
         { get; set; }
 
         [FieldMapping("name", "supplier_name")]
+        [TestOrderByModifier]
         public string Name
         { get; set; }
     }

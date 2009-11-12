@@ -58,6 +58,7 @@
     <Compile Include="MySQLBuilderTests.cs" />
     <Compile Include="ObjectBuilderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestAttributes\TestOrderByModifier.cs" />
     <Compile Include="TestTypes\Employee.cs" />
     <Compile Include="TestTypes\IPerson.cs" />
     <Compile Include="TestTypes\Product.cs" />
