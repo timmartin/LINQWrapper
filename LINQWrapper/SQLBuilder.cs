@@ -89,5 +89,14 @@ namespace LINQWrapper
         /// </summary>
         /// <param name="numResults"></param>
         void TakeResults(int numResults);
+
+        /// <summary>
+        /// Get the string via which we refer to the table that the specified type is mapped to. In general, this 
+        /// can't be relied upon to be unique. This method will throw an exception if it is called with a type
+        /// that doesn't map uniquely to a single table alias.
+        /// </summary>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        string GetTableAlias(Type targetType);
     }
 }

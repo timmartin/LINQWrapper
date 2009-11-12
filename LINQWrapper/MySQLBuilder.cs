@@ -23,6 +23,8 @@ namespace LINQWrapper
             joins = new List<JoinDetails>();
             orderExpressions = new List<OrderExpression>();
             countQuery = false;
+
+            typeTableMappings = new Dictionary<Type, string>();
         }
 
         /// <summary>
@@ -43,7 +45,8 @@ namespace LINQWrapper
                 whereConstraint = this.whereConstraint,
                 orderExpressions = new List<OrderExpression>(this.orderExpressions),
                 skipResults = this.skipResults,
-                takeResults = this.takeResults
+                takeResults = this.takeResults,
+                typeTableMappings = this.typeTableMappings // TODO: We take a reference here rather than cloning
             };
         }
 
@@ -81,6 +84,8 @@ namespace LINQWrapper
 
         public void AddSelectTypeClause(string TableName, Type typeToSelect)
         {
+            typeTableMappings[typeToSelect] = TableName;
+
             var annotatedProperties = from property in typeToSelect.GetProperties()
                                       where property.GetCustomAttributes(typeof(FieldMappingAttribute), false).Any()
                                       select property;
@@ -151,6 +156,18 @@ namespace LINQWrapper
             takeResults = numResults;
         }
 
+        public string GetTableAlias(Type targetType)
+        {
+            if (typeTableMappings.ContainsKey(targetType))
+            {
+                return typeTableMappings[targetType];
+            }
+            else
+            {
+                throw new Exception("Requested table alias of a type that hasn't been mapped (must call AddSelectTypeClause)");
+            }
+        }
+
         #endregion
 
         #region ICloneable Members
@@ -199,13 +216,15 @@ namespace LINQWrapper
 
             if (primaryKeyProperties.Count() > 0)
             {
+                
+
                 builder.Append("COUNT(DISTINCT ");
 
                 var fieldMappingAttributes = from property in primaryKeyProperties
                                              select (FieldMappingAttribute)property.GetCustomAttributes(typeof(FieldMappingAttribute), false).Single();
 
                 var fieldNames = from attr in fieldMappingAttributes
-                                 select attr.UniqueFieldAlias;
+                                 select GetTableAlias(countExpressionType) + "." + attr.FieldName;
 
                 builder.Append(string.Join(", ", fieldNames.ToArray()));
                 builder.Append(") AS numrows");
@@ -317,6 +336,11 @@ namespace LINQWrapper
         private bool countQuery;
 
         private Type countExpressionType;
+
+        /// <summary>
+        /// Stores the mapping between types being selected and the table aliases they are selected from.
+        /// </summary>
+        private Dictionary<Type, string> typeTableMappings;
 
         #endregion
     }
