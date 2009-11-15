@@ -67,6 +67,12 @@ namespace LINQWrapper
 
                         property.SetValue(obj, value, null);
                     }
+                    else if (targetType == typeof(DateTime))
+                    {
+                        DateTime value = DateTime.Parse(dbValue.ToString());
+
+                        property.SetValue(obj, value, null);
+                    }
                 }
             }
 
